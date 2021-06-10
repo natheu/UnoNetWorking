@@ -9,33 +9,34 @@ namespace NetWorkingCSharp
     public enum EType : byte 
     {
         Error = 0,
-        FUCK,
-        MSG
+        WELCOME,
+        MSG,
+        BEGINPLAY,
+        DISCONNECT
     }
 
     [ProtoContract]
     class Header
     {
         [ProtoMember(1)]
-        public int SerializeMessageId;
+        public ServerTCP.ClientData clientData;
         [ProtoMember(2)]
         public EType TypeData;
-        [ProtoMember(3)]
-        public string Name = "";
 
         public object Data;
 
-        //private static int _HeaderSerialId = 0;
-
         public static void SendHeader(System.Net.Sockets.NetworkStream stream, Header header)
         {
-            Serializer.SerializeWithLengthPrefix<Header>(stream, header, PrefixStyle.Fixed32);
+            if (stream.CanWrite)
+                Debug.Log("Can Write");
+
+            Serializer.SerializeWithLengthPrefix(stream, header, PrefixStyle.Fixed32);
 
             switch (header.TypeData)
             {
                 case EType.Error:
                     break;
-                case EType.FUCK:
+                case EType.WELCOME:
                     Serializer.SerializeWithLengthPrefix<ServerSend.WelcomeToServer>(stream, (ServerSend.WelcomeToServer)header.Data, PrefixStyle.Fixed32);
                     break;
                 case EType.MSG:
@@ -44,11 +45,11 @@ namespace NetWorkingCSharp
             }
         }
 
-        public Header(object data, EType type, int id)
+        public Header(object data, EType type, ServerTCP.ClientData id)
         {
             Data = data;
             TypeData = type;
-            SerializeMessageId = id;
+            clientData = id;
         }
 
         // default constructor for the serialisation

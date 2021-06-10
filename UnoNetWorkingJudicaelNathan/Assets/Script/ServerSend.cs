@@ -16,42 +16,47 @@ namespace NetWorkingCSharp
             [ProtoMember(1)]
             public string msg;
             [ProtoMember(2)]
-            public int Id;
+            public List<ServerTCP.ClientData> clientsData = new List<ServerTCP.ClientData>();
+            
         }
 
-        private static void SendTCPData(int toClient, byte[] arraySerialized)
+        private static void SendTCPData(int toClient, Header headerToSend)
         {
-            Server.Clients[toClient].tcp.SendData(arraySerialized);
+            if (ServerTCP.Clients[toClient].connected)
+                Header.SendHeader(ServerTCP.Clients[toClient].stream, headerToSend);
         }
 
-        public static void SendTCPDataToAll(byte[] arraySerialized)
+        public static void SendTCPDataToAll(Header headerToSend)
         {
-            for(int i = 1; i <= Server.MaxPlayers; i++)
+            for(int i = 1; i <= ServerTCP.MaxPlayers; i++)
             {
-                Server.Clients[i].tcp.SendData(arraySerialized);
+                if (ServerTCP.Clients[i].connected)
+                    Header.SendHeader(ServerTCP.Clients[i].stream, headerToSend);
             }
         }
 
         public static void SendTCPDataToAllExept(int clientExeption, Header headerToSend)
         {
-            for (int i = 1; i <= Server.MaxPlayers; i++)
+            for (int i = 1; i <= ServerTCP.MaxPlayers; i++)
             {
-                if (clientExeption != i && Server.Clients[i].tcp.connected)
-                    Header.SendHeader(Server.Clients[i].tcp.stream, headerToSend);
-                    //Serializer.SerializeWithLengthPrefix<Header>(Server.Clients[i].tcp.stream, headerToSend, PrefixStyle.Fixed32);
+                if (clientExeption != i && ServerTCP.Clients[i].connected)
+                    Header.SendHeader(ServerTCP.Clients[i].stream, headerToSend);
             }
         }
 
-        public static void Welcome(int toClient, string msg)
+        public static void Welcome(TcpClient newClient, ServerTCP.ClientData toClient, string msg, List<ServerTCP.ClientData> clients)
         {
             WelcomeToServer welcome = new WelcomeToServer();
             welcome.msg = msg;
-            welcome.Id = toClient;
-            Header H = new Header(welcome, EType.FUCK, toClient);
-            H.TypeData = EType.FUCK;
-            Header.SendHeader(Server.Clients[toClient].tcp.stream, H);
+            welcome.clientsData = clients;
+            Header H = new Header(welcome, EType.WELCOME, toClient);
+            H.TypeData = EType.WELCOME;
 
-            //Serializer.SerializeWithLengthPrefix<Header>(Server.Clients[toClient].tcp.stream, H, PrefixStyle.Fixed32);
+            Header.SendHeader(newClient.GetStream(), H);
+
+            clients.Clear();
+            H.Data = clients;
+            SendTCPDataToAllExept(toClient.Id, H);
         }
 
     }

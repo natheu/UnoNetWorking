@@ -15,18 +15,18 @@ public class MenuMgr : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
-        Transform panel = transform.Find("ConnectionPanel");
-        HostB = panel.Find("Host").GetComponent<Button>();
-        ClientB = panel.Find("Client").GetComponent<Button>();
-        IPInput = panel.Find("IPInputField").GetComponent<InputField>();
+        Transform panelConnec = transform.Find("ConnectionPanel");
+        HostB = panelConnec.Find("Host").GetComponent<Button>();
+        ClientB = panelConnec.Find("Client").GetComponent<Button>();
+        IPInput = panelConnec.Find("IPInputField").GetComponent<InputField>();
         IPInput.gameObject.SetActive(false);
-        panel = transform.Find("ChatPanel");
+        Transform panel = transform.Find("ChatPanel");
         ChatInput = panel.Find("ChatInputField").GetComponent<InputField>();
 
         HostB.onClick.AddListener(() => {
             // nbMaxPlayer and port 50150
-            NetWorkingCSharp.Server.CreateServer(3, 50150);
-            panel.gameObject.SetActive(false);
+            NetWorkingCSharp.ServerTCP.CreateServer(20, 50150, true);
+            panelConnec.gameObject.SetActive(false);
             game.CreateClient("127.0.0.1", 50150);
         });
 
@@ -36,12 +36,12 @@ public class MenuMgr : MonoBehaviour
             ClientB.gameObject.SetActive(true);
         });
 
-        IPInput.onValueChanged.AddListener((Ip) => {
+        IPInput.onEndEdit.AddListener((Ip) => {
             if (game.CreateClient(Ip, 50150))
                 IPInput.gameObject.SetActive(false);
         });
 
-        ChatInput.onValueChanged.AddListener((Msg) => {
+        ChatInput.onEndEdit.AddListener((Msg) => {
             game.SendMsg(Msg);
         });
 

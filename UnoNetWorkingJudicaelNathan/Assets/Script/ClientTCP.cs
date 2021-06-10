@@ -10,18 +10,14 @@ using ProtoBuf;
 
 namespace NetWorkingCSharp
 {
-    class ClientTest
+    class ClientTCP
     {
-        public string Ip = "127.0.0.1";
-        public int port = 50150;
+        static public string Ip = "127.0.0.1";
+        static public int port = 50150;
 
-        public static ClientTest testInst; 
-
-        public int Id = 0;
         public TCP Tcp;
         public bool CreateClient(string Ip)
         {
-            testInst = this;
             Tcp = new TCP();
             return Tcp.Connect(Ip);
         }
@@ -40,23 +36,22 @@ namespace NetWorkingCSharp
         {
             public TcpClient Socket;
 
-            public int Id;
+            public ServerTCP.ClientData clientData;
             public NetworkStream stream;
-            public byte[] receiveBuffer;
+            public Queue<Header> headersReciev = new Queue<Header>();
             public bool connected = false;
 
             public bool Connect(string Ip)
             {
                 Socket = new TcpClient
                 {
-                    ReceiveBufferSize = Client.DataBufferSize,
-                    SendBufferSize  = Client.DataBufferSize
+                    ReceiveBufferSize = ServerTCP.ClientServ.DataBufferSize,
+                    SendBufferSize  = ServerTCP.ClientServ.DataBufferSize
                 };
 
-                receiveBuffer = new byte[Client.DataBufferSize];
                 Debug.Log("TryConnect");
                 //Socket.BeginConnect(Ip, testInst.port, ConnectCallback, Socket);
-                Socket.Connect(Ip, testInst.port);
+                Socket.Connect(Ip, ClientTCP.port);
 
                 if (!Socket.Connected)
                     return false;
@@ -94,32 +89,36 @@ namespace NetWorkingCSharp
                 {
                     try
                     {
-                        Header test = Serializer.DeserializeWithLengthPrefix<Header>(stream, PrefixStyle.Fixed32);
+                        Header header = Serializer.DeserializeWithLengthPrefix<Header>(stream, PrefixStyle.Fixed32);
 
-                        if (test == null)
+                        if (header == null)
                             break;
 
                         // don't forget Set ID
 
-                        switch (test.TypeData)
+                        switch (header.TypeData)
                         {
                             case EType.Error:
                                 break;
-                            case EType.FUCK:
+                            case EType.WELCOME:
                                 ServerSend.WelcomeToServer ff = Serializer.DeserializeWithLengthPrefix<ServerSend.WelcomeToServer>(stream, PrefixStyle.Fixed32);
-                                Debug.Log(ff.msg);
-                                test.Data = ff;
-                                Id = ff.Id;
+                                header.Data = ff;
+                                if(ff.clientsData.Count != 0)
+                                    clientData = header.clientData;
                                 break;
                             case EType.MSG:
                                 string msg = Serializer.DeserializeWithLengthPrefix<string>(stream, PrefixStyle.Fixed32);
-                                Debug.Log(msg);
+                                header.Data = msg;
                                 break;
                         }
+
+                        headersReciev.Enqueue(header);
                     }
                     catch
                     {
                         //TODO : disconnect
+                        Disconnect();
+                        break;
                     }
                 }
 
