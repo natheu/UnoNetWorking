@@ -40,7 +40,7 @@ namespace NetWorkingCSharp
         {
             public TcpClient Socket;
 
-            public readonly int Id;
+            public int Id;
             public NetworkStream stream;
             public byte[] receiveBuffer;
             public bool connected = false;
@@ -109,6 +109,7 @@ namespace NetWorkingCSharp
                                 ServerSend.WelcomeToServer ff = Serializer.DeserializeWithLengthPrefix<ServerSend.WelcomeToServer>(stream, PrefixStyle.Fixed32);
                                 Debug.Log(ff.msg);
                                 test.Data = ff;
+                                Id = ff.Id;
                                 break;
                             case EType.MSG:
                                 string msg = Serializer.DeserializeWithLengthPrefix<string>(stream, PrefixStyle.Fixed32);

@@ -83,7 +83,6 @@ namespace NetWorkingCSharp
                                 ServerSend.WelcomeToServer ff = Serializer.DeserializeWithLengthPrefix<ServerSend.WelcomeToServer>(stream, PrefixStyle.Fixed32);
                                 Debug.Log(ff.msg);
                                 test.Data = ff;
-                                Id = ff.Id;
                                 break;
                         }
 

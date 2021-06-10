@@ -106,7 +106,6 @@ namespace NetWorkingCSharp
                                     break;
                                 case EType.FUCK:
                                     ServerSend.WelcomeToServer ff = Serializer.DeserializeWithLengthPrefix<ServerSend.WelcomeToServer>(currClient.stream, PrefixStyle.Fixed32);
-                                    //Debug.Log(ff.msg);
                                     test.Data = ff;
                                     break;
                                 case EType.MSG:
