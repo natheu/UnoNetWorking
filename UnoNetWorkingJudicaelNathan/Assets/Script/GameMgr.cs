@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Events;
 
 public class GameMgr : MonoBehaviour
 {
@@ -8,6 +9,7 @@ public class GameMgr : MonoBehaviour
     NetWorkingCSharp.ClientTCP client;
     Dictionary<int, NetWorkingCSharp.ServerTCP.ClientData> localClients = new Dictionary<int, NetWorkingCSharp.ServerTCP.ClientData>();
 
+    UnityEvent<string> OnMessageReciev = new UnityEvent<string>();
     private void Awake()
     {
         DontDestroyOnLoad(this.gameObject);
@@ -15,27 +17,23 @@ public class GameMgr : MonoBehaviour
 
     void Start()
     {
-        //NetWorkingCSharp.Server.CreateServer(10, 50150);
-        //client = new NetWorkingCSharp.ClientTCP();
     }
 
     void Update()
     {
-        if(NetWorkingCSharp.ServerTCP.host)
+        /*if(NetWorkingCSharp.ServerTCP.host)
         {
 
-        }
+        }*/
         if(client != null)
         {
             AnalyseRecievValue();
         }
     }
-
     public void AnalyseRecievValue()
     {
         if (client.Tcp.headersReciev.Count > 0)
         {
-            Debug.Log("Yo");
             NetWorkingCSharp.Header header = client.Tcp.headersReciev.Dequeue();
 
             switch (header.TypeData)
@@ -51,6 +49,12 @@ public class GameMgr : MonoBehaviour
                 case NetWorkingCSharp.EType.MSG:
                     string msg = (string)header.Data;
                     Debug.Log(header.clientData.Name + " : " + msg);
+                    OnMessageReciev.Invoke(header.clientData.Name + " : " + msg);
+                    break;
+                case NetWorkingCSharp.EType.UPDATENAME:
+                    string name = (string)header.Data;
+                    OnMessageReciev.Invoke("Player " + header.clientData.Id + " change his name to " + name);
+                    localClients[header.clientData.Id] = header.clientData;
                     break;
             }
         }
@@ -63,7 +67,6 @@ public class GameMgr : MonoBehaviour
         foreach(NetWorkingCSharp.ServerTCP.ClientData ClientData in clients)
         {
             localClients.Add(ClientData.Id, ClientData);
-            Debug.Log("New Comer");
         }
     }
 
@@ -73,13 +76,23 @@ public class GameMgr : MonoBehaviour
         return client.CreateClient(Ip);
     }
 
-    public void SendMsg(string msg)
+    public void SendMsg(string msg, NetWorkingCSharp.EType messageType = NetWorkingCSharp.EType.MSG)
     {
-        NetWorkingCSharp.Header header = new NetWorkingCSharp.Header(msg, NetWorkingCSharp.EType.MSG, localClients[client.Tcp.clientData.Id]);
-        if(NetWorkingCSharp.ServerTCP.host)
+        if (client.Tcp.stream == NetWorkingCSharp.ServerTCP.Clients[1].stream)
+        {
+            Debug.Log("Same socket");
+        }
+        NetWorkingCSharp.Header header = new NetWorkingCSharp.Header(msg, messageType, new NetWorkingCSharp.ServerTCP.ClientData());
+        if (NetWorkingCSharp.ServerTCP.host)
+        {
+            header.clientData = NetWorkingCSharp.ServerTCP.Clients[0].clientData;
             NetWorkingCSharp.ServerSend.SendTCPDataToAll(header);
+        }
         else
+        {
+            header.clientData = client.Tcp.clientData;
             client.SendToServer(header);
+        }
     }
 
 

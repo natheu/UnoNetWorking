@@ -95,23 +95,25 @@ namespace NetWorkingCSharp
                             break;
 
                         // don't forget Set ID
+                        object data = null;
 
                         switch (header.TypeData)
                         {
                             case EType.Error:
                                 break;
                             case EType.WELCOME:
-                                ServerSend.WelcomeToServer ff = Serializer.DeserializeWithLengthPrefix<ServerSend.WelcomeToServer>(stream, PrefixStyle.Fixed32);
-                                header.Data = ff;
-                                if(ff.clientsData.Count != 0)
+                                data = Serializer.DeserializeWithLengthPrefix<ServerSend.WelcomeToServer>(stream, PrefixStyle.Fixed32);
+                                if (clientData.Equals(default(ServerTCP.ClientData)))
                                     clientData = header.clientData;
                                 break;
                             case EType.MSG:
-                                string msg = Serializer.DeserializeWithLengthPrefix<string>(stream, PrefixStyle.Fixed32);
-                                header.Data = msg;
+                                data = Serializer.DeserializeWithLengthPrefix<string>(stream, PrefixStyle.Fixed32);
+                                break;
+                            case EType.UPDATENAME:
                                 break;
                         }
 
+                        header.Data = data;
                         headersReciev.Enqueue(header);
                     }
                     catch

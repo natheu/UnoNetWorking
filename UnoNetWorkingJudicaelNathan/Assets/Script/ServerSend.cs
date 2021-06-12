@@ -17,7 +17,7 @@ namespace NetWorkingCSharp
             public string msg;
             [ProtoMember(2)]
             public List<ServerTCP.ClientData> clientsData = new List<ServerTCP.ClientData>();
-            
+
         }
 
         private static void SendTCPData(int toClient, Header headerToSend)
@@ -28,7 +28,7 @@ namespace NetWorkingCSharp
 
         public static void SendTCPDataToAll(Header headerToSend)
         {
-            for(int i = 1; i <= ServerTCP.MaxPlayers; i++)
+            for(int i = 0; i < ServerTCP.Clients.Count; i++)
             {
                 if (ServerTCP.Clients[i].connected)
                     Header.SendHeader(ServerTCP.Clients[i].stream, headerToSend);
@@ -37,7 +37,7 @@ namespace NetWorkingCSharp
 
         public static void SendTCPDataToAllExept(int clientExeption, Header headerToSend)
         {
-            for (int i = 1; i <= ServerTCP.MaxPlayers; i++)
+            for (int i = 0; i < ServerTCP.Clients.Count; i++)
             {
                 if (clientExeption != i && ServerTCP.Clients[i].connected)
                     Header.SendHeader(ServerTCP.Clients[i].stream, headerToSend);

@@ -6,11 +6,12 @@ using UnityEngine;
 
 namespace NetWorkingCSharp
 {
-    public enum EType : byte 
+    public enum EType : Int32 
     {
         Error = 0,
         WELCOME,
         MSG,
+        UPDATENAME,
         BEGINPLAY,
         DISCONNECT
     }
@@ -27,9 +28,6 @@ namespace NetWorkingCSharp
 
         public static void SendHeader(System.Net.Sockets.NetworkStream stream, Header header)
         {
-            if (stream.CanWrite)
-                Debug.Log("Can Write");
-
             Serializer.SerializeWithLengthPrefix(stream, header, PrefixStyle.Fixed32);
 
             switch (header.TypeData)
@@ -40,6 +38,8 @@ namespace NetWorkingCSharp
                     Serializer.SerializeWithLengthPrefix<ServerSend.WelcomeToServer>(stream, (ServerSend.WelcomeToServer)header.Data, PrefixStyle.Fixed32);
                     break;
                 case EType.MSG:
+                case EType.UPDATENAME:
+                    Debug.Log("Maybe Name");
                     Serializer.SerializeWithLengthPrefix<string>(stream, (string)header.Data, PrefixStyle.Fixed32);
                     break;
             }
