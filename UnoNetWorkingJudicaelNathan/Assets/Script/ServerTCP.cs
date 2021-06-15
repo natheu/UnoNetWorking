@@ -18,6 +18,8 @@ namespace NetWorkingCSharp
             public int Id;
             [ProtoMember(2)]
             public string Name;
+            [ProtoMember(3)]
+            public bool IsReady;
         }
 
         public class ClientServ
@@ -43,6 +45,7 @@ namespace NetWorkingCSharp
                 stream = socket.GetStream();
 
                 clientData.Name = "Client" + clientData.Id;
+                clientData.IsReady = false;
 
                 connected = true;
 
@@ -118,9 +121,9 @@ namespace NetWorkingCSharp
 
             stateGame = EStateGame.START;
 
-            Thread loopRead = new Thread(new ThreadStart(ReceiveCallback));
+            /*Thread loopRead = new Thread(new ThreadStart(ReceiveCallback));
             loopRead.IsBackground = true;
-            loopRead.Start();
+            loopRead.Start();*/
 
             Debug.Log($"The Server Start on {Port} ...");
         }
@@ -136,7 +139,11 @@ namespace NetWorkingCSharp
                 Debug.Log($"Incoming connection from {client.Client.RemoteEndPoint}...");
                 ClientServ newClient = new ClientServ(Clients.Count);
                 newClient.Connect(client);
+                Thread loopRead = new Thread(new ParameterizedThreadStart(ReceiveCallback));
+                loopRead.IsBackground = true;
+                loopRead.Start(Clients.Count);
                 Clients.Add(Clients.Count, newClient);
+
             }
             mutexClient.ReleaseMutex();
         }
@@ -156,64 +163,88 @@ namespace NetWorkingCSharp
             }
         }
 
-        private static void ReceiveCallback()
+        private static void ReceiveCallback(object keyClient)
         {
-            while (stateGame != EStateGame.CLOSED)
+            ClientServ currClient = Clients[(int)keyClient];
+            while (stateGame != EStateGame.CLOSED && currClient.connected)
             {
-                for (int i = 0; i < Clients.Count; i++)
+                /*for (int i = 0; i < Clients.Count; i++)
                 {
                     //ClientServ currClient = pair.Value;
                     if (!Clients.ContainsKey(i))
                         continue;
-                    ClientServ currClient = Clients[i];
-                    if (currClient.connected)
+                    ClientServ currClient = Clients[i];*/
+                if (currClient.connected)
+                {
+                    Debug.Log("Try see stream");
+                    try
                     {
-                        Debug.Log("Try see stream");
-                        try
+                        Header header = Serializer.DeserializeWithLengthPrefix<Header>(currClient.stream, PrefixStyle.Fixed32);
+
+                        if (header == null)
                         {
-                            Header header = Serializer.DeserializeWithLengthPrefix<Header>(currClient.stream, PrefixStyle.Fixed32);
-
-                            if (header == null)
-                            {
-                                Debug.Log("Header null : " + currClient.clientData.Id);
-                                currClient.connected = false;
-                                continue;
-                            }
-
-                            object data = null;
-                            switch (header.TypeData)
-                            {
-                                case EType.Error:
-                                    break;
-                                case EType.WELCOME:
-                                    data = Serializer.DeserializeWithLengthPrefix<ServerSend.WelcomeToServer>(currClient.stream, PrefixStyle.Fixed32);
-                                    break;
-                                case EType.MSG:
-                                    data = Serializer.DeserializeWithLengthPrefix<string>(currClient.stream, PrefixStyle.Fixed32);
-                                    Debug.Log((string)data);
-                                    break;
-                                case EType.UPDATENAME:
-                                    currClient.clientData.Name = Serializer.DeserializeWithLengthPrefix<string>(currClient.stream, PrefixStyle.Fixed32);
-                                    Debug.Log("Update Name :" + currClient.clientData.Name);
-                                    break;
-                                case EType.DISCONNECT:
-                                    currClient.Disconnect();
-                                    break;
-                            }
-
-                            header.clientData = currClient.clientData;
-                            ServerSend.SendTCPDataToAllExept(currClient.clientData.Id, header);
-                        }
-                        catch(SocketException ex)
-                        {
-                            //TODO : disconnect
-                            Debug.Log(ex.Message);
-                            Debug.Log(currClient.clientData.Id);
+                            Debug.Log("Header null : " + currClient.clientData.Id);
                             currClient.connected = false;
+                            continue;
                         }
+
+                        Debug.Log("Yoo");
+
+                        object data = null;
+                        switch (header.TypeData)
+                        {
+                            case EType.Error:
+                                break;
+                            case EType.WELCOME:
+                                data = Serializer.DeserializeWithLengthPrefix<ServerSend.WelcomeToServer>(currClient.stream, PrefixStyle.Fixed32);
+                                break;
+                            case EType.MSG:
+                                data = Serializer.DeserializeWithLengthPrefix<string>(currClient.stream, PrefixStyle.Fixed32);
+                                Debug.Log((string)data);
+                                break;
+                            case EType.UPDATENAME:
+                                currClient.clientData.Name = Serializer.DeserializeWithLengthPrefix<string>(currClient.stream, PrefixStyle.Fixed32);
+                                Debug.Log("Update Name :" + currClient.clientData.Name);
+                                break;
+                            case EType.PLAYERREADY:
+                                currClient.clientData.IsReady = !currClient.clientData.IsReady;
+                                break;
+                            case EType.DISCONNECT:
+                                currClient.Disconnect();
+                                break;
+                        }
+
+                        header.clientData = currClient.clientData;
+                        ServerSend.SendTCPDataToAllExept(currClient.clientData.Id, header);
+                    }
+                    catch(SocketException ex)
+                    {
+                        //TODO : disconnect
+                        Debug.Log(ex.Message);
+                        Debug.Log(currClient.clientData.Id);
+                        currClient.connected = false;
                     }
                 }
+                //}
             }
+        }
+
+        public static bool CanStartAGame()
+        {
+            if (Clients.Count <= 1)
+            {
+                Debug.LogError("Don't start a Game alone It's sad");
+                return false;
+            }
+            for(int i = 0; i < Clients.Count; i++)
+            {
+                if(Clients[i].connected)
+                {
+                    if (!Clients[i].clientData.IsReady)
+                        return false;
+                }
+            }
+            return true;
         }
     }
 }

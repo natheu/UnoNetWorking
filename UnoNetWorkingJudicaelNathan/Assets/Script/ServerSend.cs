@@ -31,7 +31,9 @@ namespace NetWorkingCSharp
             for(int i = 0; i < ServerTCP.Clients.Count; i++)
             {
                 if (ServerTCP.Clients[i].connected)
+                {
                     Header.SendHeader(ServerTCP.Clients[i].stream, headerToSend);
+                }
             }
         }
 

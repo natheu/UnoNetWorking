@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Events;
+using UnityEngine.SceneManagement;
 
 public class GameMgr : MonoBehaviour
 {
@@ -10,6 +11,7 @@ public class GameMgr : MonoBehaviour
     Dictionary<int, NetWorkingCSharp.ServerTCP.ClientData> localClients = new Dictionary<int, NetWorkingCSharp.ServerTCP.ClientData>();
 
     UnityEvent<string> OnMessageReciev = new UnityEvent<string>();
+    UnityEvent<int, bool> IsReadyReciev = new UnityEvent<int, bool>();
     private void Awake()
     {
         DontDestroyOnLoad(this.gameObject);
@@ -56,6 +58,10 @@ public class GameMgr : MonoBehaviour
                     OnMessageReciev.Invoke("Player " + header.clientData.Id + " change his name to " + name);
                     localClients[header.clientData.Id] = header.clientData;
                     break;
+                case NetWorkingCSharp.EType.BEGINPLAY:
+                    localClients[header.clientData.Id] = header.clientData;
+                    IsReadyReciev.Invoke(header.clientData.Id, header.clientData.IsReady);
+                    break;
             }
         }
     }
@@ -78,10 +84,6 @@ public class GameMgr : MonoBehaviour
 
     public void SendMsg(string msg, NetWorkingCSharp.EType messageType = NetWorkingCSharp.EType.MSG)
     {
-        if (client.Tcp.stream == NetWorkingCSharp.ServerTCP.Clients[1].stream)
-        {
-            Debug.Log("Same socket");
-        }
         NetWorkingCSharp.Header header = new NetWorkingCSharp.Header(msg, messageType, new NetWorkingCSharp.ServerTCP.ClientData());
         if (NetWorkingCSharp.ServerTCP.host)
         {
@@ -92,6 +94,25 @@ public class GameMgr : MonoBehaviour
         {
             header.clientData = client.Tcp.clientData;
             client.SendToServer(header);
+        }
+    }
+
+    public void PlayerIsReady()
+    {
+        client.Tcp.clientData.IsReady = !client.Tcp.clientData.IsReady;
+        IsReadyReciev.Invoke(client.Tcp.clientData.Id, client.Tcp.clientData.IsReady);
+        NetWorkingCSharp.ServerSend.SendTCPDataToAll(new NetWorkingCSharp.Header(null, NetWorkingCSharp.EType.PLAYERREADY,
+                                                                            client.Tcp.clientData));
+    }
+
+    public void StartAGame()
+    {
+        if(NetWorkingCSharp.ServerTCP.CanStartAGame())
+        {
+            SceneManager.LoadScene("PlayScene");
+            NetWorkingCSharp.Header header = new NetWorkingCSharp.Header(null, NetWorkingCSharp.EType.BEGINPLAY, 
+                                                                            NetWorkingCSharp.ServerTCP.Clients[0].clientData);
+            NetWorkingCSharp.ServerSend.SendTCPDataToAll(header);
         }
     }
 

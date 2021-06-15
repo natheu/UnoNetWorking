@@ -110,6 +110,9 @@ namespace NetWorkingCSharp
                                 data = Serializer.DeserializeWithLengthPrefix<string>(stream, PrefixStyle.Fixed32);
                                 break;
                             case EType.UPDATENAME:
+                                data = Serializer.DeserializeWithLengthPrefix<string>(stream, PrefixStyle.Fixed32);
+                                break;
+                            case EType.PLAYERREADY:
                                 break;
                         }
 
@@ -138,7 +141,6 @@ namespace NetWorkingCSharp
                 if (connected)
                 {
                     Header.SendHeader(stream, header);
-                    //Serializer.SerializeWithLengthPrefix<Header>(stream, header, PrefixStyle.Fixed32);
                 }
             }
         }

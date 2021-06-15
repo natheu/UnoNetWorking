@@ -13,6 +13,7 @@ namespace NetWorkingCSharp
         MSG,
         UPDATENAME,
         BEGINPLAY,
+        PLAYERREADY,
         DISCONNECT
     }
 
@@ -28,7 +29,7 @@ namespace NetWorkingCSharp
 
         public static void SendHeader(System.Net.Sockets.NetworkStream stream, Header header)
         {
-            Serializer.SerializeWithLengthPrefix(stream, header, PrefixStyle.Fixed32);
+            Serializer.SerializeWithLengthPrefix<Header>(stream, header, PrefixStyle.Fixed32);
 
             switch (header.TypeData)
             {
@@ -38,9 +39,12 @@ namespace NetWorkingCSharp
                     Serializer.SerializeWithLengthPrefix<ServerSend.WelcomeToServer>(stream, (ServerSend.WelcomeToServer)header.Data, PrefixStyle.Fixed32);
                     break;
                 case EType.MSG:
-                case EType.UPDATENAME:
-                    Debug.Log("Maybe Name");
                     Serializer.SerializeWithLengthPrefix<string>(stream, (string)header.Data, PrefixStyle.Fixed32);
+                    break;
+                case EType.UPDATENAME:
+                    Serializer.SerializeWithLengthPrefix<string>(stream, (string)header.Data, PrefixStyle.Fixed32);
+                    break;
+                case EType.BEGINPLAY:
                     break;
             }
         }
