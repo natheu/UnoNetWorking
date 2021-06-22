@@ -82,6 +82,7 @@ namespace NetWorkingCSharp
         public static int MaxPlayers { get; private set; }
         public static int Port { get; private set; }
         public static bool host { get; private set; }
+        public static ClientTCP ServerClient { get; private set; }
 
         public static Dictionary<int, ClientServ> Clients = new Dictionary<int, ClientServ>();
         public static Mutex mutexClient = new Mutex();
@@ -113,7 +114,11 @@ namespace NetWorkingCSharp
             // Init the server client
             //InitializeServerData(isHost);
             if (isHost)
+            {
                 Clients.Add(0, new ClientServ(0));
+                ServerClient = new ClientTCP();
+                ServerClient.Tcp = new ClientTCP.TCP();
+            }
             host = isHost;
             _TcpListener = new TcpListener(IPAddress.Any, Port);
             _TcpListener.Start();
@@ -176,7 +181,7 @@ namespace NetWorkingCSharp
                     ClientServ currClient = Clients[i];*/
                 if (currClient.connected)
                 {
-                    Debug.Log("Try see stream");
+                    Debug.Log("Try see stream : " + currClient.clientData.IsReady);
                     try
                     {
                         Header header = Serializer.DeserializeWithLengthPrefix<Header>(currClient.stream, PrefixStyle.Fixed32);
@@ -207,6 +212,7 @@ namespace NetWorkingCSharp
                                 Debug.Log("Update Name :" + currClient.clientData.Name);
                                 break;
                             case EType.PLAYERREADY:
+                                Debug.Log("Ready ?");
                                 currClient.clientData.IsReady = !currClient.clientData.IsReady;
                                 break;
                             case EType.DISCONNECT:
@@ -215,6 +221,8 @@ namespace NetWorkingCSharp
                         }
 
                         header.clientData = currClient.clientData;
+                        header.Data = data;
+                        ServerClient.Tcp.headersReciev.Enqueue(header);
                         ServerSend.SendTCPDataToAllExept(currClient.clientData.Id, header);
                     }
                     catch(SocketException ex)
@@ -241,7 +249,10 @@ namespace NetWorkingCSharp
                 if(Clients[i].connected)
                 {
                     if (!Clients[i].clientData.IsReady)
+                    {
+                        Debug.LogError("Player : " + Clients[i].clientData.Name);
                         return false;
+                    }
                 }
             }
             return true;

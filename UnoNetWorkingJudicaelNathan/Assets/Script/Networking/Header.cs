@@ -18,7 +18,7 @@ namespace NetWorkingCSharp
     }
 
     [ProtoContract]
-    class Header
+    public class Header
     {
         [ProtoMember(1)]
         public ServerTCP.ClientData clientData;

@@ -23,10 +23,10 @@ public class GameMgr : MonoBehaviour
 
     void Update()
     {
-        /*if(NetWorkingCSharp.ServerTCP.host)
+        if (NetWorkingCSharp.ServerTCP.ServerClient != null && client != null)
         {
-
-        }*/
+            client = NetWorkingCSharp.ServerTCP.ServerClient;
+        }
         if(client != null)
         {
             AnalyseRecievValue();
@@ -58,9 +58,12 @@ public class GameMgr : MonoBehaviour
                     OnMessageReciev.Invoke("Player " + header.clientData.Id + " change his name to " + name);
                     localClients[header.clientData.Id] = header.clientData;
                     break;
-                case NetWorkingCSharp.EType.BEGINPLAY:
+                case NetWorkingCSharp.EType.PLAYERREADY:
                     localClients[header.clientData.Id] = header.clientData;
                     IsReadyReciev.Invoke(header.clientData.Id, header.clientData.IsReady);
+                    break;
+                case NetWorkingCSharp.EType.BEGINPLAY:
+                    SceneManager.LoadScene("PlayScene");
                     break;
             }
         }
@@ -101,12 +104,13 @@ public class GameMgr : MonoBehaviour
     {
         client.Tcp.clientData.IsReady = !client.Tcp.clientData.IsReady;
         IsReadyReciev.Invoke(client.Tcp.clientData.Id, client.Tcp.clientData.IsReady);
-        NetWorkingCSharp.ServerSend.SendTCPDataToAll(new NetWorkingCSharp.Header(null, NetWorkingCSharp.EType.PLAYERREADY,
+        client.SendToServer(new NetWorkingCSharp.Header(null, NetWorkingCSharp.EType.PLAYERREADY,
                                                                             client.Tcp.clientData));
     }
 
     public void StartAGame()
     {
+        Debug.Log("StartGame");
         if(NetWorkingCSharp.ServerTCP.CanStartAGame())
         {
             SceneManager.LoadScene("PlayScene");

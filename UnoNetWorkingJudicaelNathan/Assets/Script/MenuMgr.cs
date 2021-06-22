@@ -40,7 +40,7 @@ public class MenuMgr : MonoBehaviour
             // nbMaxPlayer and port 50150
             NetWorkingCSharp.ServerTCP.CreateServer(20, 50150, true);
             panelConnec.gameObject.SetActive(false);
-            game.CreateClient("127.0.0.1", 50150);
+            //game.CreateClient("127.0.0.1", 50150);
             NameInput.gameObject.SetActive(true);
             Play.gameObject.SetActive(true);
         });
@@ -68,7 +68,7 @@ public class MenuMgr : MonoBehaviour
             NameInput.gameObject.SetActive(false);
         });
 
-
+        BindEventToPlayReady();
 
     }
 
@@ -79,7 +79,7 @@ public class MenuMgr : MonoBehaviour
         });
 
         Ready.onClick.AddListener(() => {
-            
+            game.PlayerIsReady();
         });
     }
 

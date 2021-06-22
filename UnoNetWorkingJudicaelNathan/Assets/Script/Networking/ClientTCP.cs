@@ -10,7 +10,7 @@ using ProtoBuf;
 
 namespace NetWorkingCSharp
 {
-    class ClientTCP
+    public class ClientTCP
     {
         static public string Ip = "127.0.0.1";
         static public int port = 50150;
@@ -113,6 +113,8 @@ namespace NetWorkingCSharp
                                 data = Serializer.DeserializeWithLengthPrefix<string>(stream, PrefixStyle.Fixed32);
                                 break;
                             case EType.PLAYERREADY:
+                                break;
+                            case EType.BEGINPLAY:
                                 break;
                         }
 
