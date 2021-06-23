@@ -10,9 +10,11 @@ public class MenuMgr : MonoBehaviour
     Button ClientB = null;
     InputField IPInput = null;
     InputField ChatInput = null;
+
     InputField NameInput = null;
     Button Ready = null;
     Button Play = null;
+    Button Disconnect = null;
     [SerializeField]
     GameMgr game;
 
@@ -26,11 +28,13 @@ public class MenuMgr : MonoBehaviour
         NameInput = transform.Find("LobbyPanel").Find("NameInput").GetComponent<InputField>();
         Ready = transform.Find("LobbyPanel").Find("Ready").GetComponent<Button>();
         Play = transform.Find("LobbyPanel").Find("Play").GetComponent<Button>();
+        Disconnect = transform.Find("LobbyPanel").Find("Disconnect").GetComponent<Button>();
 
         NameInput.gameObject.SetActive(false);
         IPInput.gameObject.SetActive(false);
         Ready.gameObject.SetActive(false);
         Play.gameObject.SetActive(false);
+        Disconnect.gameObject.SetActive(false);
 
 
         Transform panel = transform.Find("ChatPanel");
@@ -47,8 +51,9 @@ public class MenuMgr : MonoBehaviour
 
         ClientB.onClick.AddListener(() => {
             IPInput.gameObject.SetActive(true);
-            HostB.gameObject.SetActive(true);
-            ClientB.gameObject.SetActive(true);
+            HostB.gameObject.SetActive(false);
+            ClientB.gameObject.SetActive(false);
+            Disconnect.gameObject.SetActive(true);
         });
 
         IPInput.onEndEdit.AddListener((Ip) => {
@@ -69,6 +74,14 @@ public class MenuMgr : MonoBehaviour
         });
 
         BindEventToPlayReady();
+
+        Disconnect.onClick.AddListener(() =>
+        {
+            Disconnect.gameObject.SetActive(false);
+            HostB.gameObject.SetActive(true);
+            ClientB.gameObject.SetActive(true);
+            game.DisconnectClient();
+        });
 
     }
 

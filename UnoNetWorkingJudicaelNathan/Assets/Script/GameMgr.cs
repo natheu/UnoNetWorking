@@ -63,7 +63,7 @@ public class GameMgr : MonoBehaviour
                     IsReadyReciev.Invoke(header.clientData.Id, header.clientData.IsReady);
                     break;
                 case NetWorkingCSharp.EType.BEGINPLAY:
-                    SceneManager.LoadScene("PlayScene");
+                    StartCoroutine(StartGame(header.HeaderTime));
                     break;
             }
         }
@@ -113,13 +113,35 @@ public class GameMgr : MonoBehaviour
         Debug.Log("StartGame");
         if(NetWorkingCSharp.ServerTCP.CanStartAGame())
         {
-            SceneManager.LoadScene("PlayScene");
             NetWorkingCSharp.Header header = new NetWorkingCSharp.Header(null, NetWorkingCSharp.EType.BEGINPLAY, 
                                                                             NetWorkingCSharp.ServerTCP.Clients[0].clientData);
             NetWorkingCSharp.ServerSend.SendTCPDataToAll(header);
+
+            StartCoroutine(StartGame(0));
         }
     }
 
+    private IEnumerator StartGame(int date)
+    {
+        float timeToWait = 3f - (System.DateTime.Now.Millisecond - date) / 1000f;
+        if (date == 0)
+            timeToWait = 3f;
+        if (timeToWait > 0f)
+        {
+            Debug.Log("Wait : " + timeToWait);
+            yield return new WaitForSeconds(timeToWait);
+        }
+
+        SceneManager.LoadScene("PlayScene");
+    }
+
+    public void DisconnectClient()
+    {
+        client.SendToServer(new NetWorkingCSharp.Header(null, NetWorkingCSharp.EType.DISCONNECT,
+                                                                            client.Tcp.clientData));
+        client.Disconnect();
+        client = null;
+    }
 
     private void OnDestroy()
     {

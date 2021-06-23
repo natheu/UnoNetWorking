@@ -24,11 +24,14 @@ namespace NetWorkingCSharp
         public ServerTCP.ClientData clientData;
         [ProtoMember(2)]
         public EType TypeData;
+        [ProtoMember(3)]
+        public int HeaderTime;
 
         public object Data;
 
         public static void SendHeader(System.Net.Sockets.NetworkStream stream, Header header)
         {
+            header.HeaderTime = System.DateTime.Now.Millisecond;
             Serializer.SerializeWithLengthPrefix<Header>(stream, header, PrefixStyle.Fixed32);
 
             switch (header.TypeData)
@@ -43,8 +46,6 @@ namespace NetWorkingCSharp
                     break;
                 case EType.UPDATENAME:
                     Serializer.SerializeWithLengthPrefix<string>(stream, (string)header.Data, PrefixStyle.Fixed32);
-                    break;
-                case EType.BEGINPLAY:
                     break;
             }
         }

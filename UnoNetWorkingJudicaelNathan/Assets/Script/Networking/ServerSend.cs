@@ -28,22 +28,36 @@ namespace NetWorkingCSharp
 
         public static void SendTCPDataToAll(Header headerToSend)
         {
-            for(int i = 0; i < ServerTCP.Clients.Count; i++)
+            foreach (KeyValuePair<int, ServerTCP.ClientServ> client in ServerTCP.Clients)
+            {
+                if (client.Value.connected)
+                    Header.SendHeader(client.Value.stream, headerToSend);
+            }
+            /*
+            for (int i = 0; i < ServerTCP.Clients.Count; i++)
             {
                 if (ServerTCP.Clients[i].connected)
                 {
                     Header.SendHeader(ServerTCP.Clients[i].stream, headerToSend);
                 }
             }
+            */
         }
 
         public static void SendTCPDataToAllExept(int clientExeption, Header headerToSend)
         {
+            foreach(KeyValuePair<int, ServerTCP.ClientServ> client in ServerTCP.Clients)
+            {
+                if (clientExeption != client.Value.clientData.Id && client.Value.connected)
+                    Header.SendHeader(client.Value.stream, headerToSend);
+            }
+            /*
             for (int i = 0; i < ServerTCP.Clients.Count; i++)
             {
                 if (clientExeption != i && ServerTCP.Clients[i].connected)
                     Header.SendHeader(ServerTCP.Clients[i].stream, headerToSend);
             }
+            */
         }
 
         public static void Welcome(TcpClient newClient, ServerTCP.ClientData toClient, string msg, List<ServerTCP.ClientData> clients)

@@ -86,6 +86,7 @@ namespace NetWorkingCSharp
 
         public static Dictionary<int, ClientServ> Clients = new Dictionary<int, ClientServ>();
         public static Mutex mutexClient = new Mutex();
+        private static int IdClient = 1;
 
         public enum EStateGame
         {
@@ -141,13 +142,14 @@ namespace NetWorkingCSharp
             mutexClient.WaitOne();
             if (Clients.Count < MaxPlayers)
             {
+                IdClient++;
                 Debug.Log($"Incoming connection from {client.Client.RemoteEndPoint}...");
                 ClientServ newClient = new ClientServ(Clients.Count);
                 newClient.Connect(client);
                 Thread loopRead = new Thread(new ParameterizedThreadStart(ReceiveCallback));
                 loopRead.IsBackground = true;
-                loopRead.Start(Clients.Count);
-                Clients.Add(Clients.Count, newClient);
+                loopRead.Start(IdClient);
+                Clients.Add(IdClient, newClient);
 
             }
             mutexClient.ReleaseMutex();
@@ -157,6 +159,11 @@ namespace NetWorkingCSharp
         {
             ServerTCP.mutexClient.Dispose();
             _TcpListener.Stop();
+            _TcpListener = null;
+            stateGame = EStateGame.CLOSED;
+            Clients.Clear();
+            // Need more work on the Destroy of the TCP Server
+            //ServerSend.SendTCPDataToAll(null, EType.DISCONNECT,)
         }
 
         private static void InitializeServerData(bool isHost)
@@ -216,7 +223,7 @@ namespace NetWorkingCSharp
                                 currClient.clientData.IsReady = !currClient.clientData.IsReady;
                                 break;
                             case EType.DISCONNECT:
-                                currClient.Disconnect();
+                                DisconnectClient(currClient);
                                 break;
                         }
 
@@ -230,11 +237,23 @@ namespace NetWorkingCSharp
                         //TODO : disconnect
                         Debug.Log(ex.Message);
                         Debug.Log(currClient.clientData.Id);
-                        currClient.connected = false;
+                        DisconnectClient(currClient);
                     }
                 }
                 //}
             }
+        }
+
+        private static void  DisconnectClient(ClientServ clientToDisconnect)
+        {
+            //int i = clientToDisconnect.clientData.Id + 1;
+            ServerSend.SendTCPDataToAllExept(clientToDisconnect.clientData.Id, new Header(null, EType.DISCONNECT, clientToDisconnect.clientData));
+            clientToDisconnect.Disconnect();
+            Clients.Remove(clientToDisconnect.clientData.Id);
+            /*for(; i < Clients.Count; i++)
+            {
+                Clients.
+            }*/
         }
 
         public static bool CanStartAGame()
@@ -244,13 +263,13 @@ namespace NetWorkingCSharp
                 Debug.LogError("Don't start a Game alone It's sad");
                 return false;
             }
-            for(int i = 0; i < Clients.Count; i++)
+            foreach(KeyValuePair<int, ClientServ> client in Clients)
             {
-                if(Clients[i].connected)
+                if(client.Value.connected)
                 {
-                    if (!Clients[i].clientData.IsReady)
+                    if (!client.Value.clientData.IsReady)
                     {
-                        Debug.LogError("Player : " + Clients[i].clientData.Name);
+                        Debug.LogError("Player : " + client.Value.clientData.Name);
                         return false;
                     }
                 }
