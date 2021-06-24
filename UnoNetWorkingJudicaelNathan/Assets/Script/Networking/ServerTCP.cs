@@ -82,9 +82,11 @@ namespace NetWorkingCSharp
         public static int MaxPlayers { get; private set; }
         public static int Port { get; private set; }
         public static bool host { get; private set; }
-        public static ClientTCP ServerClient { get; private set; }
+        public static ClientTCP ListenClient { get; private set; }
 
         public static Dictionary<int, ClientServ> Clients = new Dictionary<int, ClientServ>();
+        public static Dictionary<int, UnoNetworkingGameData> ClientsGameData = new Dictionary<int, UnoNetworkingGameData>();
+
         public static Mutex mutexClient = new Mutex();
         private static int IdClient = 1;
 
@@ -117,8 +119,9 @@ namespace NetWorkingCSharp
             if (isHost)
             {
                 Clients.Add(0, new ClientServ(0));
-                ServerClient = new ClientTCP();
-                ServerClient.Tcp = new ClientTCP.TCP();
+                ClientsGameData.Add(0, new UnoNetworkingGameData(new UnoNetworkingGameData.UnoGameData(5), Clients[0].clientData));
+                ListenClient = new ClientTCP();
+                ListenClient.Tcp = new ClientTCP.TCP();
             }
             host = isHost;
             _TcpListener = new TcpListener(IPAddress.Any, Port);
@@ -142,7 +145,6 @@ namespace NetWorkingCSharp
             mutexClient.WaitOne();
             if (Clients.Count < MaxPlayers)
             {
-                IdClient++;
                 Debug.Log($"Incoming connection from {client.Client.RemoteEndPoint}...");
                 ClientServ newClient = new ClientServ(Clients.Count);
                 newClient.Connect(client);
@@ -150,7 +152,8 @@ namespace NetWorkingCSharp
                 loopRead.IsBackground = true;
                 loopRead.Start(IdClient);
                 Clients.Add(IdClient, newClient);
-
+                ClientsGameData.Add(IdClient, new UnoNetworkingGameData(new UnoNetworkingGameData.UnoGameData(5), newClient.clientData));
+                IdClient++;
             }
             mutexClient.ReleaseMutex();
         }
@@ -174,6 +177,7 @@ namespace NetWorkingCSharp
                 Clients.Add(i, new ClientServ(i));
             }
         }
+
 
         private static void ReceiveCallback(object keyClient)
         {
@@ -229,7 +233,7 @@ namespace NetWorkingCSharp
 
                         header.clientData = currClient.clientData;
                         header.Data = data;
-                        ServerClient.Tcp.headersReciev.Enqueue(header);
+                        ListenClient.Tcp.headersReciev.Enqueue(header);
                         ServerSend.SendTCPDataToAllExept(currClient.clientData.Id, header);
                     }
                     catch(SocketException ex)

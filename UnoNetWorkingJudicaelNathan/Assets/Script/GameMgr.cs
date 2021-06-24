@@ -8,7 +8,6 @@ public class GameMgr : MonoBehaviour
 {
 
     NetWorkingCSharp.ClientTCP client;
-    Dictionary<int, NetWorkingCSharp.ServerTCP.ClientData> localClients = new Dictionary<int, NetWorkingCSharp.ServerTCP.ClientData>();
 
     UnityEvent<string> OnMessageReciev = new UnityEvent<string>();
     UnityEvent<int, bool> IsReadyReciev = new UnityEvent<int, bool>();
@@ -23,9 +22,9 @@ public class GameMgr : MonoBehaviour
 
     void Update()
     {
-        if (NetWorkingCSharp.ServerTCP.ServerClient != null && client != null)
+        if (NetWorkingCSharp.ServerTCP.ListenClient != null && client == null)
         {
-            client = NetWorkingCSharp.ServerTCP.ServerClient;
+            client = NetWorkingCSharp.ServerTCP.ListenClient;
         }
         if(client != null)
         {
@@ -42,10 +41,11 @@ public class GameMgr : MonoBehaviour
             {
                 case NetWorkingCSharp.EType.Error:
                     break;
+                    // need To put this part in the ServerTCP since it's not gameplay but general feature of Networking
                 case NetWorkingCSharp.EType.WELCOME:
                     NetWorkingCSharp.ServerSend.WelcomeToServer ff = (NetWorkingCSharp.ServerSend.WelcomeToServer)header.Data;
                     InitAllClient(ff.clientsData);
-                    localClients.Add(header.clientData.Id, header.clientData);
+                    NetWorkingCSharp.ServerTCP.ClientsGameData.Add(header.clientData.Id, UnoNetworkingGameData.CreateUnoGameData(header.clientData));
                     Debug.Log(ff.msg + " : " + header.clientData.Name);
                     break;
                 case NetWorkingCSharp.EType.MSG:
@@ -53,15 +53,18 @@ public class GameMgr : MonoBehaviour
                     Debug.Log(header.clientData.Name + " : " + msg);
                     OnMessageReciev.Invoke(header.clientData.Name + " : " + msg);
                     break;
+                // need To put this part in the ServerTCP since it's not gameplay but general feature of Networking
                 case NetWorkingCSharp.EType.UPDATENAME:
                     string name = (string)header.Data;
                     OnMessageReciev.Invoke("Player " + header.clientData.Id + " change his name to " + name);
-                    localClients[header.clientData.Id] = header.clientData;
+                    NetWorkingCSharp.ServerTCP.ClientsGameData[header.clientData.Id].Updatename(header.clientData.Name);
                     break;
+                // need To put this part in the ServerTCP since it's not gameplay but general feature of Networking
                 case NetWorkingCSharp.EType.PLAYERREADY:
-                    localClients[header.clientData.Id] = header.clientData;
+                    NetWorkingCSharp.ServerTCP.ClientsGameData[header.clientData.Id].SetIsReady(header.clientData.IsReady);
                     IsReadyReciev.Invoke(header.clientData.Id, header.clientData.IsReady);
                     break;
+                // need To put this part in the ServerTCP since it's not gameplay but general feature of Networking
                 case NetWorkingCSharp.EType.BEGINPLAY:
                     StartCoroutine(StartGame(header.HeaderTime));
                     break;
@@ -75,7 +78,7 @@ public class GameMgr : MonoBehaviour
             return;
         foreach(NetWorkingCSharp.ServerTCP.ClientData ClientData in clients)
         {
-            localClients.Add(ClientData.Id, ClientData);
+            NetWorkingCSharp.ServerTCP.ClientsGameData.Add(ClientData.Id, UnoNetworkingGameData.CreateUnoGameData(ClientData));
         }
     }
 
