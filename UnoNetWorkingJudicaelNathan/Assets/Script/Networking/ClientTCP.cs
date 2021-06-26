@@ -115,6 +115,7 @@ namespace NetWorkingCSharp
                             case EType.PLAYERREADY:
                                 break;
                             case EType.BEGINPLAY:
+                                data = Serializer.DeserializeWithLengthPrefix<Dictionary<int, int>>(stream, PrefixStyle.Fixed32);
                                 break;
                         }
 

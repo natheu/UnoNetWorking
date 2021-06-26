@@ -47,6 +47,9 @@ namespace NetWorkingCSharp
                 case EType.UPDATENAME:
                     Serializer.SerializeWithLengthPrefix<string>(stream, (string)header.Data, PrefixStyle.Fixed32);
                     break;
+                case EType.BEGINPLAY:
+                    Serializer.SerializeWithLengthPrefix<Dictionary<int, int>>(stream, (Dictionary<int, int>)header.Data, PrefixStyle.Fixed32);
+                    break;
             }
         }
 

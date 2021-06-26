@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using ProtoBuf;
 using UnityEngine;
 
+[ProtoContract]
 public class UnoNetworkingGameData
 {
     [ProtoContract]
@@ -47,6 +48,7 @@ public class UnoNetworkingGameData
         }
     }
 
+    [ProtoMember(1)]
     NetWorkingCSharp.LocalClientDataGame<UnoGameData> DataUnoPlayer;
 
     static public UnoNetworkingGameData CreateUnoGameData(NetWorkingCSharp.ServerTCP.ClientData client)
@@ -76,5 +78,15 @@ public class UnoNetworkingGameData
     public void SetIsReady(bool ready)
     {
         DataUnoPlayer.ClientData.IsReady = ready;
+    }
+
+    public void SetPosition(int pos)
+    {
+        DataUnoPlayer.GameData.PosOnBoard = pos;
+    }
+
+    public int GetPosition()
+    {
+        return DataUnoPlayer.GameData.PosOnBoard;
     }
 }

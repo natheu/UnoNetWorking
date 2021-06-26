@@ -13,7 +13,6 @@ public class PlayModMgr : MonoBehaviour
     void Start()
     {
         CreateBoard();
-        //CreateAllPos(2);
     }
 
     // Update is called once per frame
@@ -29,7 +28,13 @@ public class PlayModMgr : MonoBehaviour
         foreach (KeyValuePair<int, UnoNetworkingGameData> client in NetWorkingCSharp.ServerTCP.ClientsGameData)
         {
             Vector3 PosToCenter = (Vector3.zero - AllPos[i]).normalized;
-            GameObject.Instantiate(PrefabPlayer, AllPos[i], Quaternion.FromToRotation(Vector3.forward, PosToCenter));
+            GameObject Player = Instantiate(PrefabPlayer, AllPos[i], Quaternion.FromToRotation(Vector3.forward, PosToCenter));
+            if(client.Value.GetPosition() == i)
+            {
+                Camera.main.transform.position = Player.transform.Find("PosPlayer").position;
+                Camera.main.transform.rotation = Quaternion.FromToRotation(Vector3.forward, PosToCenter);
+            }
+
             i++;
         }
     }

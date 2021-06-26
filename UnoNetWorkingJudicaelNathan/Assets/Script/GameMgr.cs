@@ -66,6 +66,7 @@ public class GameMgr : MonoBehaviour
                     break;
                 // need To put this part in the ServerTCP since it's not gameplay but general feature of Networking
                 case NetWorkingCSharp.EType.BEGINPLAY:
+                    SetGamePosPlayers((Dictionary<int, int>)header.Data);
                     StartCoroutine(StartGame(header.HeaderTime));
                     break;
             }
@@ -116,11 +117,42 @@ public class GameMgr : MonoBehaviour
         Debug.Log("StartGame");
         if(NetWorkingCSharp.ServerTCP.CanStartAGame())
         {
-            NetWorkingCSharp.Header header = new NetWorkingCSharp.Header(null, NetWorkingCSharp.EType.BEGINPLAY, 
+            NetWorkingCSharp.Header header = new NetWorkingCSharp.Header(ChooseGamePosPlayer(), NetWorkingCSharp.EType.BEGINPLAY, 
                                                                             NetWorkingCSharp.ServerTCP.Clients[0].clientData);
             NetWorkingCSharp.ServerSend.SendTCPDataToAll(header);
 
             StartCoroutine(StartGame(0));
+        }
+    }
+
+    // only use by the server
+    private Dictionary<int, int> ChooseGamePosPlayer()
+    {
+        Dictionary<int, int> PosPlayers = new Dictionary<int, int>();
+        List<int> allPlayer = new List<int>();
+        foreach(KeyValuePair<int, UnoNetworkingGameData> client in NetWorkingCSharp.ServerTCP.ClientsGameData)
+        {
+            allPlayer.Add(client.Key);
+        }
+
+        for (int i = 0; i < NetWorkingCSharp.ServerTCP.ClientsGameData.Count; i++)
+        {
+            // the position in the list of the player choose for the position on the board
+            int player = Random.Range(0, allPlayer.Count - 1);
+            PosPlayers.Add(allPlayer[player], i);
+            allPlayer.Remove(player);
+        }
+
+        SetGamePosPlayers(PosPlayers);
+
+        return PosPlayers;
+    }
+
+    private void SetGamePosPlayers(Dictionary<int, int> posPlayers)
+    {
+        foreach(KeyValuePair<int, UnoNetworkingGameData> player in NetWorkingCSharp.ServerTCP.ClientsGameData)
+        {
+            player.Value.SetPosition(posPlayers[player.Key]);
         }
     }
 
