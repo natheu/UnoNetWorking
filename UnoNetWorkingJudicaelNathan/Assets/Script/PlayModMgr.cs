@@ -7,12 +7,15 @@ public class PlayModMgr : MonoBehaviour
     [SerializeField]
     private float DistBetweenPlayer = 2f;
     [SerializeField]
-    public GameObject PrefabPlayer = null;
+    private GameObject PrefabPlayer = null;
+
+    private int DirectionBoard = -1;
+
+    List<UnoPlayer> players = new List<UnoPlayer>();
 
     // Start is called before the first frame update
     void Start()
     {
-        CreateBoard();
     }
 
     // Update is called once per frame
@@ -21,7 +24,7 @@ public class PlayModMgr : MonoBehaviour
         
     }
 
-    private void CreateBoard()
+    private void CreateBoard(int numberOfCard, List<UnoNetworkingGameData.CardType> beginCard)
     {
         List<Vector3> AllPos = CreateAllPos(NetWorkingCSharp.ServerTCP.ClientsGameData.Count);
         int i = 0;
@@ -29,7 +32,11 @@ public class PlayModMgr : MonoBehaviour
         {
             Vector3 PosToCenter = (Vector3.zero - AllPos[i]).normalized;
             GameObject Player = Instantiate(PrefabPlayer, AllPos[i], Quaternion.FromToRotation(Vector3.forward, PosToCenter));
-            if(client.Value.GetPosition() == i)
+            players.Insert(i, Player.GetComponent<UnoPlayer>());
+
+            Player.GetComponent<UnoPlayer>().CreatePlayer(beginCard);
+
+            if (client.Value.GetPosOnBoard() == i)
             {
                 Camera.main.transform.position = Player.transform.Find("PosPlayer").position;
                 Camera.main.transform.rotation = Quaternion.FromToRotation(Vector3.forward, PosToCenter);

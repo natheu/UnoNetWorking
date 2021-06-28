@@ -11,6 +11,12 @@ public class GameMgr : MonoBehaviour
 
     UnityEvent<string> OnMessageReciev = new UnityEvent<string>();
     UnityEvent<int, bool> IsReadyReciev = new UnityEvent<int, bool>();
+
+    [SerializeField]
+    GameObject PlayModPrefab;
+
+    PlayModMgr playMod = null;
+
     private void Awake()
     {
         DontDestroyOnLoad(this.gameObject);
@@ -152,7 +158,7 @@ public class GameMgr : MonoBehaviour
     {
         foreach(KeyValuePair<int, UnoNetworkingGameData> player in NetWorkingCSharp.ServerTCP.ClientsGameData)
         {
-            player.Value.SetPosition(posPlayers[player.Key]);
+            player.Value.SetPosOnBoard(posPlayers[player.Key]);
         }
     }
 
@@ -168,6 +174,14 @@ public class GameMgr : MonoBehaviour
         }
 
         SceneManager.LoadScene("PlayScene");
+    }
+
+    private void LoadGame()
+    {
+        SceneManager.LoadScene("PlayScene");
+
+        playMod = Instantiate(PlayModPrefab).GetComponent<PlayModMgr>();
+
     }
 
     public void DisconnectClient()

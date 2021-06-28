@@ -80,12 +80,12 @@ public class UnoNetworkingGameData
         DataUnoPlayer.ClientData.IsReady = ready;
     }
 
-    public void SetPosition(int pos)
+    public void SetPosOnBoard(int pos)
     {
         DataUnoPlayer.GameData.PosOnBoard = pos;
     }
 
-    public int GetPosition()
+    public int GetPosOnBoard()
     {
         return DataUnoPlayer.GameData.PosOnBoard;
     }
