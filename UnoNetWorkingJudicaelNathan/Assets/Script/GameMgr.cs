@@ -15,6 +15,9 @@ public class GameMgr : MonoBehaviour
     [SerializeField]
     GameObject PlayModPrefab;
 
+    [SerializeField]
+    UnoCardTextures CardTextures = null;
+
     PlayModMgr playMod = null;
 
     private void Awake()
@@ -51,7 +54,7 @@ public class GameMgr : MonoBehaviour
                 case NetWorkingCSharp.EType.WELCOME:
                     NetWorkingCSharp.ServerSend.WelcomeToServer ff = (NetWorkingCSharp.ServerSend.WelcomeToServer)header.Data;
                     InitAllClient(ff.clientsData);
-                    NetWorkingCSharp.ServerTCP.ClientsGameData.Add(header.clientData.Id, UnoNetworkingGameData.CreateUnoGameData(header.clientData));
+                    NetWorkingCSharp.ServerTCP.ClientsGameData.Add(header.clientData.Id, PlayerGameData.CreateUnoGameData(header.clientData));
                     Debug.Log(ff.msg + " : " + header.clientData.Name);
                     break;
                 case NetWorkingCSharp.EType.MSG:
@@ -85,7 +88,7 @@ public class GameMgr : MonoBehaviour
             return;
         foreach(NetWorkingCSharp.ServerTCP.ClientData ClientData in clients)
         {
-            NetWorkingCSharp.ServerTCP.ClientsGameData.Add(ClientData.Id, UnoNetworkingGameData.CreateUnoGameData(ClientData));
+            NetWorkingCSharp.ServerTCP.ClientsGameData.Add(ClientData.Id, PlayerGameData.CreateUnoGameData(ClientData));
         }
     }
 
@@ -136,7 +139,7 @@ public class GameMgr : MonoBehaviour
     {
         Dictionary<int, int> PosPlayers = new Dictionary<int, int>();
         List<int> allPlayer = new List<int>();
-        foreach(KeyValuePair<int, UnoNetworkingGameData> client in NetWorkingCSharp.ServerTCP.ClientsGameData)
+        foreach(KeyValuePair<int, PlayerGameData> client in NetWorkingCSharp.ServerTCP.ClientsGameData)
         {
             allPlayer.Add(client.Key);
         }
@@ -156,7 +159,7 @@ public class GameMgr : MonoBehaviour
 
     private void SetGamePosPlayers(Dictionary<int, int> posPlayers)
     {
-        foreach(KeyValuePair<int, UnoNetworkingGameData> player in NetWorkingCSharp.ServerTCP.ClientsGameData)
+        foreach(KeyValuePair<int, PlayerGameData> player in NetWorkingCSharp.ServerTCP.ClientsGameData)
         {
             player.Value.SetPosOnBoard(posPlayers[player.Key]);
         }

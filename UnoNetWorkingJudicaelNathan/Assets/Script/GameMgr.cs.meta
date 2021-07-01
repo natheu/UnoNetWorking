@@ -3,7 +3,9 @@ guid: f267f53dc9583624388c546fab856039
 MonoImporter:
   externalObjects: {}
   serializedVersion: 2
-  defaultReferences: []
+  defaultReferences:
+  - PlayModPrefab: {instanceID: 0}
+  - CardTextures: {fileID: 11400000, guid: 7f276408b3e9c6940b83989e43e01686, type: 2}
   executionOrder: 0
   icon: {instanceID: 0}
   userData: 

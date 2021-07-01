@@ -14,7 +14,8 @@ namespace NetWorkingCSharp
         UPDATENAME,
         BEGINPLAY,
         PLAYERREADY,
-        DISCONNECT
+        DISCONNECT,
+        PLAYERACTION
     }
 
     [ProtoContract]
@@ -49,6 +50,9 @@ namespace NetWorkingCSharp
                     break;
                 case EType.BEGINPLAY:
                     Serializer.SerializeWithLengthPrefix<Dictionary<int, int>>(stream, (Dictionary<int, int>)header.Data, PrefixStyle.Fixed32);
+                    break;
+                case EType.PLAYERACTION:
+                    Serializer.SerializeWithLengthPrefix(stream, (UnoNetworkingGameData.GameData)header.Data, PrefixStyle.Fixed32);
                     break;
             }
         }

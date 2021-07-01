@@ -85,7 +85,7 @@ namespace NetWorkingCSharp
         public static ClientTCP ListenClient { get; private set; }
 
         public static Dictionary<int, ClientServ> Clients = new Dictionary<int, ClientServ>();
-        public static Dictionary<int, UnoNetworkingGameData> ClientsGameData = new Dictionary<int, UnoNetworkingGameData>();
+        public static Dictionary<int, PlayerGameData> ClientsGameData = new Dictionary<int, PlayerGameData>();
 
         public static Mutex mutexClient = new Mutex();
         private static int IdClient = 1;
@@ -119,7 +119,7 @@ namespace NetWorkingCSharp
             if (isHost)
             {
                 Clients.Add(0, new ClientServ(0));
-                ClientsGameData.Add(0, new UnoNetworkingGameData(new UnoNetworkingGameData.UnoGameData(5), Clients[0].clientData));
+                ClientsGameData.Add(0, new PlayerGameData(new PlayerGameData.GameData(5), Clients[0].clientData));
                 ListenClient = new ClientTCP();
                 ListenClient.Tcp = new ClientTCP.TCP();
             }
@@ -152,7 +152,7 @@ namespace NetWorkingCSharp
                 loopRead.IsBackground = true;
                 loopRead.Start(IdClient);
                 Clients.Add(IdClient, newClient);
-                ClientsGameData.Add(IdClient, new UnoNetworkingGameData(new UnoNetworkingGameData.UnoGameData(5), newClient.clientData));
+                ClientsGameData.Add(IdClient, new PlayerGameData(new PlayerGameData.GameData(5), newClient.clientData));
                 IdClient++;
             }
             mutexClient.ReleaseMutex();
@@ -177,8 +177,6 @@ namespace NetWorkingCSharp
                 Clients.Add(i, new ClientServ(i));
             }
         }
-
-
         private static void ReceiveCallback(object keyClient)
         {
             ClientServ currClient = Clients[(int)keyClient];
@@ -225,6 +223,9 @@ namespace NetWorkingCSharp
                             case EType.PLAYERREADY:
                                 Debug.Log("Ready ?");
                                 currClient.clientData.IsReady = !currClient.clientData.IsReady;
+                                break;
+                            case EType.PLAYERACTION:
+                                data  = Serializer.DeserializeWithLengthPrefix<UnoNetworkingGameData.GameData>(currClient.stream, PrefixStyle.Fixed32);
                                 break;
                             case EType.DISCONNECT:
                                 DisconnectClient(currClient);
