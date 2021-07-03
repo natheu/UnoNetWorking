@@ -6,7 +6,6 @@ using UnityEngine.SceneManagement;
 
 public class GameMgr : MonoBehaviour
 {
-
     NetWorkingCSharp.ClientTCP client;
 
     UnityEvent<string> OnMessageReciev = new UnityEvent<string>();
@@ -31,20 +30,14 @@ public class GameMgr : MonoBehaviour
 
     void Update()
     {
-        if (NetWorkingCSharp.ServerTCP.ListenClient != null && client == null)
-        {
-            client = NetWorkingCSharp.ServerTCP.ListenClient;
-        }
-        if(client != null)
-        {
+        if(NetWorkingCSharp.ClientTCP.Tcp != null)
             AnalyseRecievValue();
-        }
     }
     public void AnalyseRecievValue()
     {
-        if (client.Tcp.headersReciev.Count > 0)
+        if (NetWorkingCSharp.ClientTCP.Tcp.headersReciev.Count > 0)
         {
-            NetWorkingCSharp.Header header = client.Tcp.headersReciev.Dequeue();
+            NetWorkingCSharp.Header header = NetWorkingCSharp.ClientTCP.Tcp.headersReciev.Dequeue();
 
             switch (header.TypeData)
             {
@@ -75,8 +68,12 @@ public class GameMgr : MonoBehaviour
                     break;
                 // need To put this part in the ServerTCP since it's not gameplay but general feature of Networking
                 case NetWorkingCSharp.EType.BEGINPLAY:
-                    SetGamePosPlayers((Dictionary<int, int>)header.Data);
+                    SetGamePosPlayers((int[])header.Data);
                     StartCoroutine(StartGame(header.HeaderTime));
+                    break;
+                case NetWorkingCSharp.EType.DISCONNECT:
+                    if (NetWorkingCSharp.ServerTCP.stateGame == NetWorkingCSharp.ServerTCP.EStateGame.RUNNING)
+                        playMod.PlayerDisconnected((int)header.Data);
                     break;
             }
         }
@@ -95,7 +92,7 @@ public class GameMgr : MonoBehaviour
     public bool CreateClient(string Ip, int port)
     {
         client = new NetWorkingCSharp.ClientTCP();
-        return client.CreateClient(Ip);
+        return NetWorkingCSharp.ClientTCP.CreateClient(Ip);
     }
 
     public void SendMsg(string msg, NetWorkingCSharp.EType messageType = NetWorkingCSharp.EType.MSG)
@@ -108,17 +105,17 @@ public class GameMgr : MonoBehaviour
         }
         else
         {
-            header.clientData = client.Tcp.clientData;
-            client.SendToServer(header);
+            header.clientData = NetWorkingCSharp.ClientTCP.Tcp.clientData;
+            NetWorkingCSharp.ClientTCP.SendToServer(header);
         }
     }
 
     public void PlayerIsReady()
     {
-        client.Tcp.clientData.IsReady = !client.Tcp.clientData.IsReady;
-        IsReadyReciev.Invoke(client.Tcp.clientData.Id, client.Tcp.clientData.IsReady);
-        client.SendToServer(new NetWorkingCSharp.Header(null, NetWorkingCSharp.EType.PLAYERREADY,
-                                                                            client.Tcp.clientData));
+        NetWorkingCSharp.ClientTCP.Tcp.clientData.IsReady = !NetWorkingCSharp.ClientTCP.Tcp.clientData.IsReady;
+        IsReadyReciev.Invoke(NetWorkingCSharp.ClientTCP.Tcp.clientData.Id, NetWorkingCSharp.ClientTCP.Tcp.clientData.IsReady);
+        NetWorkingCSharp.ClientTCP.SendToServer(new NetWorkingCSharp.Header(null, NetWorkingCSharp.EType.PLAYERREADY,
+                                                                            NetWorkingCSharp.ClientTCP.Tcp.clientData));
     }
 
     public void StartAGame()
@@ -135,9 +132,10 @@ public class GameMgr : MonoBehaviour
     }
 
     // only use by the server
-    private Dictionary<int, int> ChooseGamePosPlayer()
+    private int[] ChooseGamePosPlayer()
     {
-        Dictionary<int, int> PosPlayers = new Dictionary<int, int>();
+        //Dictionary<int, int> PosPlayers = new Dictionary<int, int>();
+        int[] PosPlayers = new int[NetWorkingCSharp.ServerTCP.ClientsGameData.Count];
         List<int> allPlayer = new List<int>();
         foreach(KeyValuePair<int, PlayerGameData> client in NetWorkingCSharp.ServerTCP.ClientsGameData)
         {
@@ -148,7 +146,7 @@ public class GameMgr : MonoBehaviour
         {
             // the position in the list of the player choose for the position on the board
             int player = Random.Range(0, allPlayer.Count - 1);
-            PosPlayers.Add(allPlayer[player], i);
+            PosPlayers[i] = (allPlayer[player]);
             allPlayer.Remove(player);
         }
 
@@ -157,11 +155,11 @@ public class GameMgr : MonoBehaviour
         return PosPlayers;
     }
 
-    private void SetGamePosPlayers(Dictionary<int, int> posPlayers)
+    private void SetGamePosPlayers(int[] posPlayers)
     {
-        foreach(KeyValuePair<int, PlayerGameData> player in NetWorkingCSharp.ServerTCP.ClientsGameData)
+        for(int i = 0; i < posPlayers.Length; i++)
         {
-            player.Value.SetPosOnBoard(posPlayers[player.Key]);
+                NetWorkingCSharp.ServerTCP.ClientsGameData[posPlayers[i]].SetPosOnBoard(i);
         }
     }
 
@@ -189,9 +187,9 @@ public class GameMgr : MonoBehaviour
 
     public void DisconnectClient()
     {
-        client.SendToServer(new NetWorkingCSharp.Header(null, NetWorkingCSharp.EType.DISCONNECT,
-                                                                            client.Tcp.clientData));
-        client.Disconnect();
+        NetWorkingCSharp.ClientTCP.SendToServer(new NetWorkingCSharp.Header(null, NetWorkingCSharp.EType.DISCONNECT,
+                                                                            NetWorkingCSharp.ClientTCP.Tcp.clientData));
+        NetWorkingCSharp.ClientTCP.Disconnect();
         client = null;
     }
 

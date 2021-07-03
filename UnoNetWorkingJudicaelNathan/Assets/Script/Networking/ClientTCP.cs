@@ -15,19 +15,19 @@ namespace NetWorkingCSharp
         static public string Ip = "127.0.0.1";
         static public int port = 50150;
 
-        public TCP Tcp;
-        public bool CreateClient(string Ip)
+        static public TCP Tcp;
+        static public bool CreateClient(string Ip)
         {
             Tcp = new TCP();
             return Tcp.Connect(Ip);
         }
 
-        public void SendToServer(Header header)
+        static public void SendToServer(Header header)
         {
             Tcp.SendToServer(header);
         }
 
-        public void Disconnect()
+        static public void Disconnect()
         {
             Tcp.Disconnect();
         }
@@ -115,17 +115,22 @@ namespace NetWorkingCSharp
                             case EType.PLAYERREADY:
                                 break;
                             case EType.BEGINPLAY:
-                                data = Serializer.DeserializeWithLengthPrefix<Dictionary<int, int>>(stream, PrefixStyle.Fixed32);
+                                data = Serializer.DeserializeWithLengthPrefix<int[]>(stream, PrefixStyle.Fixed32);
+                                break;
+                            case EType.DISCONNECT:
+                                data = ServerTCP.ClientsGameData[header.clientData.Id].GetPosOnBoard();
+                                ServerTCP.ClientsGameData.Remove(header.clientData.Id);
                                 break;
                         }
 
                         header.Data = data;
                         headersReciev.Enqueue(header);
                     }
-                    catch
+                    catch (Exception ex)
                     {
                         //TODO : disconnect
                         Disconnect();
+                        Debug.Log(ex.Message);
                         break;
                     }
                 }

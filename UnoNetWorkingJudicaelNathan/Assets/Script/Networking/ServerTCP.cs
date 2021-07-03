@@ -82,7 +82,7 @@ namespace NetWorkingCSharp
         public static int MaxPlayers { get; private set; }
         public static int Port { get; private set; }
         public static bool host { get; private set; }
-        public static ClientTCP ListenClient { get; private set; }
+        //public static ClientTCP ListenClient { get; private set; }
 
         public static Dictionary<int, ClientServ> Clients = new Dictionary<int, ClientServ>();
         public static Dictionary<int, PlayerGameData> ClientsGameData = new Dictionary<int, PlayerGameData>();
@@ -120,8 +120,10 @@ namespace NetWorkingCSharp
             {
                 Clients.Add(0, new ClientServ(0));
                 ClientsGameData.Add(0, new PlayerGameData(new PlayerGameData.GameData(5), Clients[0].clientData));
-                ListenClient = new ClientTCP();
-                ListenClient.Tcp = new ClientTCP.TCP();
+
+                ClientTCP.Tcp = new ClientTCP.TCP();
+                //ListenClient = new ClientTCP();
+                //ListenClient.Tcp = new ClientTCP.TCP();
             }
             host = isHost;
             _TcpListener = new TcpListener(IPAddress.Any, Port);
@@ -190,7 +192,6 @@ namespace NetWorkingCSharp
                     ClientServ currClient = Clients[i];*/
                 if (currClient.connected)
                 {
-                    Debug.Log("Try see stream : " + currClient.clientData.IsReady);
                     try
                     {
                         Header header = Serializer.DeserializeWithLengthPrefix<Header>(currClient.stream, PrefixStyle.Fixed32);
@@ -234,7 +235,7 @@ namespace NetWorkingCSharp
 
                         header.clientData = currClient.clientData;
                         header.Data = data;
-                        ListenClient.Tcp.headersReciev.Enqueue(header);
+                        ClientTCP.Tcp.headersReciev.Enqueue(header);
                         ServerSend.SendTCPDataToAllExept(currClient.clientData.Id, header);
                     }
                     catch(SocketException ex)
@@ -255,6 +256,7 @@ namespace NetWorkingCSharp
             ServerSend.SendTCPDataToAllExept(clientToDisconnect.clientData.Id, new Header(null, EType.DISCONNECT, clientToDisconnect.clientData));
             clientToDisconnect.Disconnect();
             Clients.Remove(clientToDisconnect.clientData.Id);
+            ClientsGameData.Remove(clientToDisconnect.clientData.Id);
             /*for(; i < Clients.Count; i++)
             {
                 Clients.
@@ -263,18 +265,18 @@ namespace NetWorkingCSharp
 
         public static bool CanStartAGame()
         {
-            if (Clients.Count <= 1)
+            if (ClientsGameData.Count <= 1)
             {
                 Debug.LogError("Don't start a Game alone It's sad");
                 return false;
             }
-            foreach(KeyValuePair<int, ClientServ> client in Clients)
+            foreach(KeyValuePair<int, PlayerGameData> client in ClientsGameData)
             {
-                if(client.Value.connected)
+                if(Clients[client.Value.ClientData.Id].connected)
                 {
-                    if (!client.Value.clientData.IsReady)
+                    if (!client.Value.ClientData.IsReady)
                     {
-                        Debug.LogError("Player : " + client.Value.clientData.Name);
+                        Debug.LogError("Player : " + client.Value.ClientData.Name + " isn't Ready");
                         return false;
                     }
                 }

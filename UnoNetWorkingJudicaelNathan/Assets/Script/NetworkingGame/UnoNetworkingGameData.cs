@@ -34,19 +34,18 @@ public class PlayerGameData
     public struct GameData
     {
         public int NumberOfCard;
-        public List<List<int>> CardsInHand;
+        //public List<List<int>> CardsInHand;
         public int PosOnBoard;
 
         public GameData(int numberOfCard = 5)
         {
             NumberOfCard = numberOfCard;
-            CardsInHand = new List<List<int>>();
             PosOnBoard = 0;
         }
     }
 
     GameData DataUnoPlayer;
-    NetWorkingCSharp.ServerTCP.ClientData ClientData;
+    public NetWorkingCSharp.ServerTCP.ClientData ClientData;
 
     static public PlayerGameData CreateUnoGameData(NetWorkingCSharp.ServerTCP.ClientData client)
     {
@@ -88,7 +87,7 @@ public class PlayerGameData
         return DataUnoPlayer.PosOnBoard;
     }
 
-    public void DrawCards(UnoNetworkingGameData.GameData data)
+    /*public void DrawCards(UnoNetworkingGameData.GameData data)
     {
         foreach(CardType cardType in data.CardTypePutOnBoard)
         {
@@ -107,7 +106,7 @@ public class PlayerGameData
             return cardType;
         }
         return new CardType(CardType.Color.DEFAULT, 0);
-    }
+    }*/
 }
 
 public class UnoNetworkingGameData

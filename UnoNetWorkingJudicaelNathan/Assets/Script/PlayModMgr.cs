@@ -14,6 +14,8 @@ public class PlayModMgr : MonoBehaviour
     private int CurrentPlayer = 0;
     private float TimerCurrPlayer = 0f;
 
+    private
+
     List<UnoPlayer> players = new List<UnoPlayer>();
 
     UnityEvent<PlayerGameData.CardType> CardPlayEvent = new UnityEvent<PlayerGameData.CardType>();
@@ -40,20 +42,13 @@ public class PlayModMgr : MonoBehaviour
             */
         }
 
+        //if()
+
     }
 
-    private void UpdateCurrentPlayer()
+    private int GetNextPlayer(int posPlayer)
     {
-        CurrentPlayer += DirectionBoard;
-        if (CurrentPlayer < 0)
-            CurrentPlayer = players.Count - 1;
-        else if (CurrentPlayer >= players.Count)
-            CurrentPlayer = 0;
-    }
-
-    private int GetNextPlayer()
-    {
-        int next = CurrentPlayer + DirectionBoard;
+        int next = posPlayer + DirectionBoard;
         if (next < 0)
             next = players.Count - 1;
         else if (next >= players.Count)
@@ -69,7 +64,7 @@ public class PlayModMgr : MonoBehaviour
             case UnoNetworkingGameData.GameData.TypeData.DEFAULT:
                 break;
             case UnoNetworkingGameData.GameData.TypeData.CARDPLAY:
-                PlayerGameData.CardType cardType = NetWorkingCSharp.ServerTCP.ClientsGameData[IdPLayerAction].CardPlay(data.GameData);
+                PlayerGameData.CardType cardType = players[CurrentPlayer].CardPlay(data.GameData);
                 CardPlayEvent.Invoke(cardType);
                 EffectPlayCard(cardType, data.GameData);
                 break;
@@ -87,17 +82,18 @@ public class PlayModMgr : MonoBehaviour
         // the card plays is a +2
         if(cardType.Effect == 10)
         {
-            int nextPlayer = GetNextPlayer();
+            int nextPlayer = GetNextPlayer(CurrentPlayer);
             foreach (KeyValuePair<int, PlayerGameData> client in NetWorkingCSharp.ServerTCP.ClientsGameData)
             {
                 if(client.Value.GetPosOnBoard() == nextPlayer)
                 {
-                    // make the animation of player draw cards
-                    //players[nextPlayer].DrawCards()
-
-                    client.Value.DrawCards(gameData);
+                    players[CurrentPlayer].DrawCards(gameData, true);
                 }
+                else
+                    players[CurrentPlayer].DrawCards(gameData, false);
             }
+
+            CurrentPlayer = GetNextPlayer(nextPlayer);
         }
         /*
         // the card plays is Turn Pass
@@ -113,7 +109,7 @@ public class PlayModMgr : MonoBehaviour
         */
     }
 
-    public void CreateBoard(int numberOfCard, List<PlayerGameData.CardType> beginCard, UnoCardTextures textures)
+    public void CreateBoard(int numberOfCard, List<UnoNetworkingGameData.GameData> playerHandData, UnoCardTextures textures)
     {
         List<Vector3> AllPos = CreateAllPos(NetWorkingCSharp.ServerTCP.ClientsGameData.Count);
         int i = 0;
@@ -123,7 +119,7 @@ public class PlayModMgr : MonoBehaviour
             GameObject Player = Instantiate(PrefabPlayer, AllPos[i], Quaternion.FromToRotation(Vector3.forward, PosToCenter));
             players.Insert(i, Player.GetComponent<UnoPlayer>());
 
-            Player.GetComponent<UnoPlayer>().InitPlayer(beginCard, textures);
+            Player.GetComponent<UnoPlayer>().InitPlayer(playerHandData[i].CardTypePutOnBoard, textures);
 
             if (client.Value.GetPosOnBoard() == i)
             {
@@ -161,5 +157,11 @@ public class PlayModMgr : MonoBehaviour
         }
         
         return localPositions;
+    }
+
+
+    public void PlayerDisconnected(int posOnBoard)
+    {
+        players[posOnBoard].ControlledByAI = true;
     }
 }
