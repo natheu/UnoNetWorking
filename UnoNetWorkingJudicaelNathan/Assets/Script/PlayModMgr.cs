@@ -4,7 +4,7 @@ using UnityEngine;
 using UnityEngine.Events;
 
 public class PlayModMgr : MonoBehaviour
-{
+{ 
     [SerializeField]
     private float DistBetweenPlayer = 2f;
     [SerializeField]
@@ -64,7 +64,7 @@ public class PlayModMgr : MonoBehaviour
             case UnoNetworkingGameData.GameData.TypeData.DEFAULT:
                 break;
             case UnoNetworkingGameData.GameData.TypeData.CARDPLAY:
-                PlayerGameData.CardType cardType = players[CurrentPlayer].CardPlay(data.GameData);
+                PlayerGameData.CardType cardType = players[CurrentPlayer].CardPlay(ref data.GameData);
                 CardPlayEvent.Invoke(cardType);
                 EffectPlayCard(cardType, data.GameData);
                 break;

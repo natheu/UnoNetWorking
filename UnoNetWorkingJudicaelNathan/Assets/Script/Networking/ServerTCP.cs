@@ -97,6 +97,7 @@ namespace NetWorkingCSharp
             LOBBY,
             RUNNING,
             START,
+            STARTNEW,
             FINISH,
             CLOSED
         }

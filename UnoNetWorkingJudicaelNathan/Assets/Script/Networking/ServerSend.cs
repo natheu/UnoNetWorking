@@ -28,6 +28,9 @@ namespace NetWorkingCSharp
 
         public static void SendTCPDataToAll(Header headerToSend)
         {
+            //if (headerToSend.TypeData == EType.BEGINPLAY)
+            //    ServerTCP.stateGame = ServerTCP.EStateGame.STARTNEW;
+
             foreach (KeyValuePair<int, ServerTCP.ClientServ> client in ServerTCP.Clients)
             {
                 if (client.Value.connected)

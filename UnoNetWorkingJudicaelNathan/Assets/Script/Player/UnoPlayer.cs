@@ -14,7 +14,7 @@ public class UnoPlayer : MonoBehaviour
         
     }
 
-    public void InitPlayer(List<PlayerGameData.CardType> beginCard, UnoCardTextures textures)
+    public void InitPlayer(PlayerGameData.CardType[] beginCard, UnoCardTextures textures)
     {
         for(int i = 0; i < 5; i++)
         {
@@ -33,20 +33,23 @@ public class UnoPlayer : MonoBehaviour
         Textures = textures;
     }
 
-    public void SpawnCards(List<PlayerGameData.CardType> cardToSpawn)
+    public void SpawnCards(PlayerGameData.CardType[] cardToSpawn)
     {
 
     }
 
     // Delete the card play by the current player
-    public PlayerGameData.CardType CardPlay(UnoNetworkingGameData.GameData data)
+    // return the card that has been played
+    public PlayerGameData.CardType CardPlay(ref UnoNetworkingGameData.GameData data)
     {
-        if (data.CardTypePutOnBoard.Count > 1)
+        List<PlayerGameData.CardType> cards = new List<PlayerGameData.CardType>(data.CardTypePutOnBoard);
+        if (cards.Count > 1)
         {
             PlayerGameData.CardType cardType = data.CardTypePutOnBoard[0];
             CardsInHand[(int)cardType.CardColor].RemoveAt(data.PosInHand);
             // TO DO Animation Play card
-            data.CardTypePutOnBoard.RemoveAt(0);
+            cards.RemoveAt(0);
+            data.CardTypePutOnBoard = cards.ToArray();
             return cardType;
         }
         return new PlayerGameData.CardType(PlayerGameData.CardType.Color.DEFAULT, 0);

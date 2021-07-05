@@ -6,6 +6,11 @@ using UnityEngine;
 [ProtoContract]
 public class PlayerGameData
 {
+    public static int CARD_WITH_COLOR { get; } = 13;
+    public static int NB_COLOR { get; } = 4;
+    public static int PLUS_FOUR = 14;
+    public static int CHOOSE_COLOR = 15;
+
     [ProtoContract]
     public struct CardType
     {
@@ -34,12 +39,13 @@ public class PlayerGameData
     public struct GameData
     {
         public int NumberOfCard;
-        //public List<List<int>> CardsInHand;
+        public List<List<int>> CardsInHand;
         public int PosOnBoard;
 
         public GameData(int numberOfCard = 5)
         {
             NumberOfCard = numberOfCard;
+            CardsInHand = new List<List<int>>();
             PosOnBoard = 0;
         }
     }
@@ -87,6 +93,16 @@ public class PlayerGameData
         return DataUnoPlayer.PosOnBoard;
     }
 
+    public void SetStartGameData(CardType[] dataStart, int posOnBoard)
+    {
+        foreach (CardType cardType in dataStart)
+        {
+            DataUnoPlayer.CardsInHand[(int)cardType.CardColor].Add(cardType.Effect);
+        }
+
+        DataUnoPlayer.PosOnBoard = posOnBoard;
+    }
+
     /*public void DrawCards(UnoNetworkingGameData.GameData data)
     {
         foreach(CardType cardType in data.CardTypePutOnBoard)
@@ -122,8 +138,9 @@ public class UnoNetworkingGameData
         }
 
         [ProtoMember(1)]
-        public List<PlayerGameData.CardType> CardTypePutOnBoard;
+        public PlayerGameData.CardType[] CardTypePutOnBoard;
         [ProtoMember(2)]
+        // became in the BeginPlay state the ID of the Client
         public int PosInHand;
         [ProtoMember(3)]
         // the type of data send When Card is play
@@ -131,7 +148,7 @@ public class UnoNetworkingGameData
 
         public GameData(int numberOfCard = 5)
         {
-            CardTypePutOnBoard = new List<PlayerGameData.CardType>();
+            CardTypePutOnBoard = new PlayerGameData.CardType[1];
             PosInHand = 0;
             type = TypeData.DEFAULT;
         }

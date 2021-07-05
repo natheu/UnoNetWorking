@@ -68,7 +68,7 @@ public class GameMgr : MonoBehaviour
                     break;
                 // need To put this part in the ServerTCP since it's not gameplay but general feature of Networking
                 case NetWorkingCSharp.EType.BEGINPLAY:
-                    SetGamePosPlayers((int[])header.Data);
+                    SetGameDataPlayer((UnoNetworkingGameData.GameData[])header.Data);
                     StartCoroutine(StartGame(header.HeaderTime));
                     break;
                 case NetWorkingCSharp.EType.DISCONNECT:
@@ -132,6 +132,7 @@ public class GameMgr : MonoBehaviour
     }
 
     // only use by the server
+    // to optimize with the choixe of all the card
     private int[] ChooseGamePosPlayer()
     {
         //Dictionary<int, int> PosPlayers = new Dictionary<int, int>();
@@ -155,11 +156,35 @@ public class GameMgr : MonoBehaviour
         return PosPlayers;
     }
 
+    private UnoNetworkingGameData.GameData[] ChooseCardAndPosPlayers()
+    {
+        int[] pos = ChooseGamePosPlayer();
+
+        UnoNetworkingGameData.GameData[] dataplayers = new UnoNetworkingGameData.GameData[pos.Length];
+
+        for (int i = 0; i < pos.Length; i++)
+        {
+            dataplayers[i].PosInHand = pos[i];
+
+
+        }
+
+        return dataplayers;
+    }
+
     private void SetGamePosPlayers(int[] posPlayers)
     {
         for(int i = 0; i < posPlayers.Length; i++)
         {
                 NetWorkingCSharp.ServerTCP.ClientsGameData[posPlayers[i]].SetPosOnBoard(i);
+        }
+    }
+
+    private void SetGameDataPlayer(UnoNetworkingGameData.GameData[] dataPlayers)
+    {
+        for(int i = 0; i < dataPlayers.Length; i++)
+        {
+            NetWorkingCSharp.ServerTCP.ClientsGameData[dataPlayers[i].PosInHand].SetStartGameData(dataPlayers[i].CardTypePutOnBoard, i);
         }
     }
 
