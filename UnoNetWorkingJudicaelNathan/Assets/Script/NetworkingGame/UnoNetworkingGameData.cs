@@ -6,10 +6,10 @@ using UnityEngine;
 [ProtoContract]
 public class PlayerGameData
 {
-    public static int CARD_WITH_COLOR { get; } = 13;
+    public static int CARD_WITH_COLOR { get; } = 12;
     public static int NB_COLOR { get; } = 4;
-    public static int PLUS_FOUR = 14;
-    public static int CHOOSE_COLOR = 15;
+    public static int PLUS_FOUR = 13;
+    public static int CHOOSE_COLOR = 14;
 
     [ProtoContract]
     public struct CardType

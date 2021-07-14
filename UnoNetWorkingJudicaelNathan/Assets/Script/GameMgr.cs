@@ -123,7 +123,7 @@ public class GameMgr : MonoBehaviour
         Debug.Log("StartGame");
         if(NetWorkingCSharp.ServerTCP.CanStartAGame())
         {
-            NetWorkingCSharp.Header header = new NetWorkingCSharp.Header(ChooseGamePosPlayer(), NetWorkingCSharp.EType.BEGINPLAY, 
+            NetWorkingCSharp.Header header = new NetWorkingCSharp.Header(ChooseCardAndPosPlayers(), NetWorkingCSharp.EType.BEGINPLAY, 
                                                                             NetWorkingCSharp.ServerTCP.Clients[0].clientData);
             NetWorkingCSharp.ServerSend.SendTCPDataToAll(header);
 
@@ -166,7 +166,7 @@ public class GameMgr : MonoBehaviour
         {
             dataplayers[i].PosInHand = pos[i];
 
-
+            //dataplayers[i].CardTypePutOnBoard = 
         }
 
         return dataplayers;
@@ -193,13 +193,14 @@ public class GameMgr : MonoBehaviour
         float timeToWait = 3f - (System.DateTime.Now.Millisecond - date) / 1000f;
         if (date == 0)
             timeToWait = 3f;
+        NetWorkingCSharp.ServerTCP.GameRunning();
         if (timeToWait > 0f)
         {
             Debug.Log("Wait : " + timeToWait);
             yield return new WaitForSeconds(timeToWait);
         }
 
-        SceneManager.LoadScene("PlayScene");
+        LoadGame();
     }
 
     private void LoadGame()
@@ -207,7 +208,7 @@ public class GameMgr : MonoBehaviour
         SceneManager.LoadScene("PlayScene");
 
         playMod = Instantiate(PlayModPrefab).GetComponent<PlayModMgr>();
-
+        
     }
 
     public void DisconnectClient()

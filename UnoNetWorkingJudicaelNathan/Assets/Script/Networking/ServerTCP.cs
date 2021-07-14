@@ -284,5 +284,10 @@ namespace NetWorkingCSharp
             }
             return true;
         }
+
+        public static void GameRunning()
+        {
+            stateGame = EStateGame.RUNNING;
+        }
     }
 }

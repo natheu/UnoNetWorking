@@ -12,3 +12,21 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 465a3632ad3288a4ba775b0fdcfeecb5, type: 3}
   m_Name: CardSelector
   m_EditorClassIdentifier: 
+  EffectFactor:
+  - 2
+  - 2
+  - 2
+  - 2
+  - 2
+  - 2
+  - 2
+  - 2
+  - 2
+  - 2
+  - 2
+  - 2
+  - 2
+  - 4
+  - 4
+  NbCardsInOnePackage: 108
+  IndexValueUpdate: 0

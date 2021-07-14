@@ -5,13 +5,14 @@ using UnityEngine;
 [CreateAssetMenu(fileName = "CardSelector", menuName = "ScriptableObjects/CardSelector")]
 public class CardSelector : ScriptableObject
 {
+
     [SerializeField]
-    private List<float> EffectFactor = new List<float>(15);
+    private List<int> EffectFactor = new List<int>(15);
     [SerializeField]
     // in the real Game there is 108 cards
     private uint NbCardsInOnePackage = 108;
 
-    private List<List<float>> FactorCards = new List<List<float>>();
+    private List<List<int>> FactorCards = new List<List<int>>();
 
     [HideInInspector]
     public int IndexValueUpdate = 0;
@@ -26,22 +27,22 @@ public class CardSelector : ScriptableObject
         FactorCards.Clear();
 
         // add the color ANY
-        for (int i = 0; i < PlayerGameData.NB_COLOR + 1; i++)
+        for (int i = 0; i <= PlayerGameData.NB_COLOR; i++)
         {
-            FactorCards.Add(new List<float>());
+            FactorCards.Add(new List<int>());
         }
 
-        for (int i = 0; i < EffectFactor.Count; i++)
+        for (int i = 0; i < PlayerGameData.CHOOSE_COLOR; i++)
         {
             if (i < PlayerGameData.CARD_WITH_COLOR)
             {
-                for (int j = 0; j < PlayerGameData.NB_COLOR; i++)
+                for (int j = 0; j < PlayerGameData.NB_COLOR; j++)
                 {
                     FactorCards[j].Add(EffectFactor[i]);
                 }
             }
             else
-                FactorCards[PlayerGameData.NB_COLOR + 1].Add(EffectFactor[i]);
+                FactorCards[PlayerGameData.NB_COLOR].Add(EffectFactor[i]);
 
         }
     }
@@ -53,6 +54,5 @@ public class CardSelector : ScriptableObject
         {
 
         }
-    }
-    */
+    }*/
 }
