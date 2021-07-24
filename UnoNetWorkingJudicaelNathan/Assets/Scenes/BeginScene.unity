@@ -2038,7 +2038,10 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   PlayModPrefab: {fileID: 2474780971944536816, guid: ea9ae00e05c9047429b3f1c8c4aef5eb, type: 3}
+  SaveDataPrefab: {fileID: 2922945948315522065, guid: f8f688a13c5387b439c15a2fff6f3482, type: 3}
   CardTextures: {fileID: 11400000, guid: 7f276408b3e9c6940b83989e43e01686, type: 2}
+  selector: {fileID: 11400000, guid: 6bc5512fbc898b34c84134ab7e8a025b, type: 2}
+  nbCardBeginning: 5
 --- !u!1 &1684099183
 GameObject:
   m_ObjectHideFlags: 0

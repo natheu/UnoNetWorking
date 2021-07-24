@@ -95,10 +95,10 @@ public class PlayerGameData
 
     public void SetStartGameData(CardType[] dataStart, int posOnBoard)
     {
-        foreach (CardType cardType in dataStart)
+        /*foreach (CardType cardType in dataStart)
         {
             DataUnoPlayer.CardsInHand[(int)cardType.CardColor].Add(cardType.Effect);
-        }
+        }*/
 
         DataUnoPlayer.PosOnBoard = posOnBoard;
     }
@@ -154,6 +154,15 @@ public class UnoNetworkingGameData
         }
     }
 
-    [ProtoMember(1)]
+    //[ProtoMember(1)]
     public NetWorkingCSharp.LocalClientDataGame<GameData> DataUnoPlayer;
+}
+
+
+// only for the test NEED TO BE DELETED OR UPDATE IN THE FUTURE
+[ProtoContract]
+public struct GameDataArray
+{
+    [ProtoMember(1)]
+    public UnoNetworkingGameData.GameData[] gameDatas;
 }

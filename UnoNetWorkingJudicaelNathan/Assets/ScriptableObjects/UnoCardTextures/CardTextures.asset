@@ -13,3 +13,4 @@ MonoBehaviour:
   m_Name: CardTextures
   m_EditorClassIdentifier: 
   FolderPath: 
+  PrefabCards: {fileID: 71273314603560559, guid: cce4da0933c8a40409d3cc4340c4ab0f, type: 3}

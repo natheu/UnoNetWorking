@@ -49,9 +49,11 @@ namespace NetWorkingCSharp
                     Serializer.SerializeWithLengthPrefix<string>(stream, (string)header.Data, PrefixStyle.Fixed32);
                     break;
                 case EType.BEGINPLAY:
-                    Serializer.SerializeWithLengthPrefix<UnoNetworkingGameData.GameData[]>(stream, (UnoNetworkingGameData.GameData[])header.Data, PrefixStyle.Fixed32);
-                    Debug.Log(((UnoNetworkingGameData.GameData[])header.Data).Length);
-                    Debug.LogError("Server header begin Play");
+                    //Serializer.
+                    GameDataArray arr = new GameDataArray();
+                    arr.gameDatas = (UnoNetworkingGameData.GameData[])header.Data;
+                    Serializer.SerializeWithLengthPrefix(stream, arr, PrefixStyle.Fixed32);
+                    //Debug.LogError("Server header begin Play");
                     break;
                 case EType.PLAYERACTION:
                     Serializer.SerializeWithLengthPrefix(stream, (UnoNetworkingGameData.GameData)header.Data, PrefixStyle.Fixed32);

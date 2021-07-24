@@ -17,7 +17,15 @@ public class DataStruct
         bool EndShuffle;
 
         List<int> Effects;
-        void CreateDeck(List<List<int>> cards)
+
+        public Deck(int shuffle)
+        {
+            Cards = new List<PlayerGameData.CardType>();
+            EndShuffle = false;
+            Effects = new List<int>();
+        }
+
+        public void CreateDeck(List<List<int>> cards)
         {
             for(int i = 0; i < PlayerGameData.NB_COLOR; i++)
             {
@@ -26,12 +34,12 @@ public class DataStruct
                 {
                     int numberInDeck = Effects[j];
 
-                    AddCardinDeck(Effects[j], (PlayerGameData.CardType.Color)i, j);
+                    AddCardinDeck(Effects[j], (PlayerGameData.CardType.Color)i + 1, j);
                 }
             }
 
-            Effects = cards[PlayerGameData.NB_COLOR + 1];
-            for (int i = 0; i <= 2; i++)
+            Effects = cards[PlayerGameData.NB_COLOR];
+            for (int i = 0; i < 2; i++)
             {
                 AddCardinDeck(Effects[i], PlayerGameData.CardType.Color.ANY, i + PlayerGameData.PLUS_FOUR);
             }
@@ -46,8 +54,9 @@ public class DataStruct
             }
         }
 
-        void Shuffle(int numberShuffle)
+        public void Shuffle(int numberShuffle)
         {
+            EndShuffle = false;
             List<PlayerGameData.CardType> shuffleList = new List<PlayerGameData.CardType>();
             while(numberShuffle != 0)
             {
@@ -58,7 +67,22 @@ public class DataStruct
                     Swap(Cards, i, j);
                 }
                 //Cards = shuffleList;
+                numberShuffle--;
             }
+
+            EndShuffle = true;
+        }
+
+        public PlayerGameData.CardType GetNextCard()
+        {
+            if (Cards.Count < 0)
+                return new PlayerGameData.CardType();
+
+            PlayerGameData.CardType tmpCard = Cards[0];
+
+            Cards.RemoveAt(0);
+
+            return tmpCard;
         }
 
     }

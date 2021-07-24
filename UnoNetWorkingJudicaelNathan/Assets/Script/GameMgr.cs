@@ -13,11 +13,20 @@ public class GameMgr : MonoBehaviour
 
     [SerializeField]
     GameObject PlayModPrefab;
+    [SerializeField]
+    GameObject SaveDataPrefab;
 
     [SerializeField]
     UnoCardTextures CardTextures = null;
 
     PlayModMgr playMod = null;
+
+    [SerializeField]
+    CardSelector selector;
+    DataStruct.Deck deckGame;
+
+    [SerializeField]
+    uint nbCardBeginning = 5;
 
     private void Awake()
     {
@@ -26,6 +35,8 @@ public class GameMgr : MonoBehaviour
 
     void Start()
     {
+        deckGame = new DataStruct.Deck(0);
+        deckGame.CreateDeck(selector.GetFactorCards());
     }
 
     void Update()
@@ -68,8 +79,7 @@ public class GameMgr : MonoBehaviour
                     break;
                 // need To put this part in the ServerTCP since it's not gameplay but general feature of Networking
                 case NetWorkingCSharp.EType.BEGINPLAY:
-                    SetGameDataPlayer((UnoNetworkingGameData.GameData[])header.Data);
-                    StartCoroutine(StartGame(header.HeaderTime));
+                    SetGameDataPlayer(header.HeaderTime, (UnoNetworkingGameData.GameData[])header.Data);
                     break;
                 case NetWorkingCSharp.EType.DISCONNECT:
                     if (NetWorkingCSharp.ServerTCP.stateGame == NetWorkingCSharp.ServerTCP.EStateGame.RUNNING)
@@ -87,6 +97,16 @@ public class GameMgr : MonoBehaviour
         {
             NetWorkingCSharp.ServerTCP.ClientsGameData.Add(ClientData.Id, PlayerGameData.CreateUnoGameData(ClientData));
         }
+    }
+
+    public bool CreateServer(int maxPlayer, int port, bool isHost = true)
+    {
+        // nbMaxPlayer and port 50150
+        NetWorkingCSharp.ServerTCP.CreateServer(maxPlayer, port, isHost);
+
+        deckGame.Shuffle(2);
+
+        return true;
     }
 
     public bool CreateClient(string Ip, int port)
@@ -123,11 +143,18 @@ public class GameMgr : MonoBehaviour
         Debug.Log("StartGame");
         if(NetWorkingCSharp.ServerTCP.CanStartAGame())
         {
-            NetWorkingCSharp.Header header = new NetWorkingCSharp.Header(ChooseCardAndPosPlayers(), NetWorkingCSharp.EType.BEGINPLAY, 
+            UnoNetworkingGameData.GameData[] startGameData = ChooseCardAndPosPlayers();
+            NetWorkingCSharp.Header header = new NetWorkingCSharp.Header(startGameData, NetWorkingCSharp.EType.BEGINPLAY, 
                                                                             NetWorkingCSharp.ServerTCP.Clients[0].clientData);
             NetWorkingCSharp.ServerSend.SendTCPDataToAll(header);
 
-            StartCoroutine(StartGame(0));
+            for (int i = 0; i < startGameData.Length; i++)
+            {
+                NetWorkingCSharp.ServerTCP.ClientsGameData[startGameData[i].PosInHand].SetStartGameData(startGameData[i].CardTypePutOnBoard, i);
+            }
+
+
+            StartCoroutine(StartGame(0, startGameData));
         }
     }
 
@@ -166,10 +193,22 @@ public class GameMgr : MonoBehaviour
         {
             dataplayers[i].PosInHand = pos[i];
 
-            //dataplayers[i].CardTypePutOnBoard = 
+            dataplayers[i].CardTypePutOnBoard = ChooseCardPlayer(nbCardBeginning);
         }
 
         return dataplayers;
+    }
+
+    private PlayerGameData.CardType[] ChooseCardPlayer(uint nbCardStart)
+    {
+        List<PlayerGameData.CardType> cards = new List<PlayerGameData.CardType>();
+
+        for(int i = 0; i < nbCardStart; i++)
+        {
+            cards.Add(deckGame.GetNextCard());
+        }
+
+        return cards.ToArray();
     }
 
     private void SetGamePosPlayers(int[] posPlayers)
@@ -180,15 +219,16 @@ public class GameMgr : MonoBehaviour
         }
     }
 
-    private void SetGameDataPlayer(UnoNetworkingGameData.GameData[] dataPlayers)
+    private void SetGameDataPlayer(int time, UnoNetworkingGameData.GameData[] dataPlayers)
     {
         for(int i = 0; i < dataPlayers.Length; i++)
         {
             NetWorkingCSharp.ServerTCP.ClientsGameData[dataPlayers[i].PosInHand].SetStartGameData(dataPlayers[i].CardTypePutOnBoard, i);
         }
+        StartCoroutine(StartGame(time, dataPlayers));
     }
 
-    private IEnumerator StartGame(int date)
+    private IEnumerator StartGame(int date, UnoNetworkingGameData.GameData[] gameData)
     {
         float timeToWait = 3f - (System.DateTime.Now.Millisecond - date) / 1000f;
         if (date == 0)
@@ -200,15 +240,36 @@ public class GameMgr : MonoBehaviour
             yield return new WaitForSeconds(timeToWait);
         }
 
-        LoadGame();
+        LoadGame(gameData);
     }
 
-    private void LoadGame()
+    private void LoadGame(UnoNetworkingGameData.GameData[] gameData)
     {
+        SceneManager.sceneLoaded += OnSceneLoaded;
+
+        Instantiate(SaveDataPrefab).GetComponent<SaveData>().beginPlayGameData = gameData;
+
         SceneManager.LoadScene("PlayScene");
 
-        playMod = Instantiate(PlayModPrefab).GetComponent<PlayModMgr>();
-        
+    }
+
+    // called second
+    void OnSceneLoaded(Scene scene, LoadSceneMode mode)
+    {
+        if(scene.name == "PlayScene")
+        {
+            SaveData data = FindObjectOfType<SaveData>();
+
+            playMod = Instantiate(PlayModPrefab).GetComponent<PlayModMgr>();
+
+            int key = -1;
+            if (NetWorkingCSharp.ClientTCP.Tcp != null)
+                key = NetWorkingCSharp.ClientTCP.Tcp.clientData.Id;
+            else if (NetWorkingCSharp.ServerTCP.host)
+                key = 0;
+            playMod.CreateBoard(data.beginPlayGameData, CardTextures, key);
+        }
+        SceneManager.sceneLoaded -= OnSceneLoaded;
     }
 
     public void DisconnectClient()

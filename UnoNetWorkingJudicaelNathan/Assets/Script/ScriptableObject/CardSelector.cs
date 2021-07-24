@@ -14,6 +14,11 @@ public class CardSelector : ScriptableObject
 
     private List<List<int>> FactorCards = new List<List<int>>();
 
+    public List<List<int>> GetFactorCards()
+    {
+        return FactorCards;
+    }
+
     [HideInInspector]
     public int IndexValueUpdate = 0;
 
@@ -32,9 +37,9 @@ public class CardSelector : ScriptableObject
             FactorCards.Add(new List<int>());
         }
 
-        for (int i = 0; i < PlayerGameData.CHOOSE_COLOR; i++)
+        for (int i = 0; i <= PlayerGameData.CHOOSE_COLOR; i++)
         {
-            if (i < PlayerGameData.CARD_WITH_COLOR)
+            if (i <= PlayerGameData.CARD_WITH_COLOR)
             {
                 for (int j = 0; j < PlayerGameData.NB_COLOR; j++)
                 {

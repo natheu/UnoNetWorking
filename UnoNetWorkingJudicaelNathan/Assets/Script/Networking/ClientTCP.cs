@@ -115,7 +115,7 @@ namespace NetWorkingCSharp
                             case EType.PLAYERREADY:
                                 break;
                             case EType.BEGINPLAY:
-                                data = Serializer.DeserializeWithLengthPrefix<UnoNetworkingGameData.GameData[]>(stream, PrefixStyle.Fixed32);
+                                data = Serializer.DeserializeWithLengthPrefix<GameDataArray>(stream, PrefixStyle.Fixed32).gameDatas;
                                 break;
                             case EType.DISCONNECT:
                                 data = ServerTCP.ClientsGameData[header.clientData.Id].GetPosOnBoard();

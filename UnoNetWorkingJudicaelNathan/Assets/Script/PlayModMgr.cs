@@ -14,7 +14,7 @@ public class PlayModMgr : MonoBehaviour
     private int CurrentPlayer = 0;
     private float TimerCurrPlayer = 0f;
 
-    private
+    PlayerGameData.CardType CardOnBoard;
 
     List<UnoPlayer> players = new List<UnoPlayer>();
 
@@ -41,6 +41,8 @@ public class PlayModMgr : MonoBehaviour
             }
             */
         }
+
+        players[CurrentPlayer].UpdatePlayer(CardOnBoard);
 
         //if()
 
@@ -109,23 +111,33 @@ public class PlayModMgr : MonoBehaviour
         */
     }
 
-    public void CreateBoard(int numberOfCard, List<UnoNetworkingGameData.GameData> playerHandData, UnoCardTextures textures)
+    public void CreateBoard(UnoNetworkingGameData.GameData[] playerHandData, UnoCardTextures textures, int keyPlayer)
     {
         List<Vector3> AllPos = CreateAllPos(NetWorkingCSharp.ServerTCP.ClientsGameData.Count);
         int i = 0;
-        foreach (KeyValuePair<int, PlayerGameData> client in NetWorkingCSharp.ServerTCP.ClientsGameData)
+
+        foreach(UnoNetworkingGameData.GameData data in playerHandData)
         {
             Vector3 PosToCenter = (Vector3.zero - AllPos[i]).normalized;
             GameObject Player = Instantiate(PrefabPlayer, AllPos[i], Quaternion.FromToRotation(Vector3.forward, PosToCenter));
             players.Insert(i, Player.GetComponent<UnoPlayer>());
 
-            Player.GetComponent<UnoPlayer>().InitPlayer(playerHandData[i].CardTypePutOnBoard, textures);
-
-            if (client.Value.GetPosOnBoard() == i)
+            UnoPlayer.EController conrollerP = UnoPlayer.EController.DEFAULT;
+            //DontDestroyOnLoad(Player);
+            if (NetWorkingCSharp.ServerTCP.ClientsGameData[keyPlayer].GetPosOnBoard() == i)
             {
                 Camera.main.transform.position = Player.transform.Find("PosPlayer").position;
                 Camera.main.transform.rotation = Quaternion.FromToRotation(Vector3.forward, PosToCenter);
+                conrollerP = UnoPlayer.EController.PLAYER;
             }
+            else if(NetWorkingCSharp.ServerTCP.ClientsGameData.ContainsKey(data.PosInHand))
+            {
+                conrollerP = UnoPlayer.EController.ENEMY;
+            }
+            else
+                conrollerP = UnoPlayer.EController.IA;
+
+            Player.GetComponent<UnoPlayer>().InitPlayer(data.CardTypePutOnBoard, textures, conrollerP);
 
             i++;
         }
@@ -162,6 +174,6 @@ public class PlayModMgr : MonoBehaviour
 
     public void PlayerDisconnected(int posOnBoard)
     {
-        players[posOnBoard].ControlledByAI = true;
+        players[posOnBoard].ToControllerIA();
     }
 }

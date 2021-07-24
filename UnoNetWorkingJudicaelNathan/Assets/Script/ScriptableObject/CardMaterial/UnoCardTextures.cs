@@ -8,7 +8,18 @@ public class UnoCardTextures : ScriptableObject
     [SerializeField]
     private string FolderPath = "";
 
-    private List<List<Texture>> CardTextures = new List<List<Texture>>();
+    [SerializeField]
+    private List<MatCard> CardTextures = new List<MatCard>();
+
+    [SerializeField]
+    private GameObject PrefabCards;
+
+    public GameObject GetPrefab() { return PrefabCards; }
+
+    struct MatCard
+    {
+        List<Material> mats;
+    }
 
     public void CreateTexturesList(string folderPath)
     {

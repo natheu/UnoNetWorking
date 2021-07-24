@@ -41,8 +41,8 @@ public class MenuMgr : MonoBehaviour
         ChatInput = panel.Find("ChatInputField").GetComponent<InputField>();
 
         HostB.onClick.AddListener(() => {
-            // nbMaxPlayer and port 50150
-            NetWorkingCSharp.ServerTCP.CreateServer(20, 50150, true);
+
+            game.CreateServer(20, 50150);
             panelConnec.gameObject.SetActive(false);
             //game.CreateClient("127.0.0.1", 50150);
             NameInput.gameObject.SetActive(true);
