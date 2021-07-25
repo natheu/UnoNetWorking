@@ -19,7 +19,7 @@ public class GameMgr : MonoBehaviour
     [SerializeField]
     UnoCardTextures CardTextures = null;
 
-    PlayModMgr playMod = null;
+    PlayModMgr PlayMod = null;
 
     [SerializeField]
     CardSelector selector;
@@ -81,9 +81,15 @@ public class GameMgr : MonoBehaviour
                 case NetWorkingCSharp.EType.BEGINPLAY:
                     SetGameDataPlayer(header.HeaderTime, (UnoNetworkingGameData.GameData[])header.Data);
                     break;
+                case NetWorkingCSharp.EType.PLAYERACTION:
+                    if (NetWorkingCSharp.ServerTCP.host)
+                        HostPlayerAction(header);
+                    else
+                        PlayMod.UpdateActionPlayer(header.clientData.Id, (UnoNetworkingGameData.GameData)header.Data);
+                    break;
                 case NetWorkingCSharp.EType.DISCONNECT:
                     if (NetWorkingCSharp.ServerTCP.stateGame == NetWorkingCSharp.ServerTCP.EStateGame.RUNNING)
-                        playMod.PlayerDisconnected((int)header.Data);
+                        PlayMod.PlayerDisconnected((int)header.Data);
                     break;
             }
         }
@@ -148,7 +154,7 @@ public class GameMgr : MonoBehaviour
                                                                             NetWorkingCSharp.ServerTCP.Clients[0].clientData);
             NetWorkingCSharp.ServerSend.SendTCPDataToAll(header);
 
-            for (int i = 0; i < startGameData.Length; i++)
+            for (int i = 0; i < startGameData.Length - 1; i++)
             {
                 NetWorkingCSharp.ServerTCP.ClientsGameData[startGameData[i].PosInHand].SetStartGameData(startGameData[i].CardTypePutOnBoard, i);
             }
@@ -187,7 +193,7 @@ public class GameMgr : MonoBehaviour
     {
         int[] pos = ChooseGamePosPlayer();
 
-        UnoNetworkingGameData.GameData[] dataplayers = new UnoNetworkingGameData.GameData[pos.Length];
+        UnoNetworkingGameData.GameData[] dataplayers = new UnoNetworkingGameData.GameData[pos.Length + 1];
 
         for (int i = 0; i < pos.Length; i++)
         {
@@ -195,6 +201,8 @@ public class GameMgr : MonoBehaviour
 
             dataplayers[i].CardTypePutOnBoard = ChooseCardPlayer(nbCardBeginning);
         }
+        // choose the beginning card on board
+        dataplayers[pos.Length].CardTypePutOnBoard = ChooseCardPlayer(1); 
 
         return dataplayers;
     }
@@ -213,7 +221,7 @@ public class GameMgr : MonoBehaviour
 
     private void SetGamePosPlayers(int[] posPlayers)
     {
-        for(int i = 0; i < posPlayers.Length; i++)
+        for(int i = 0; i < posPlayers.Length - 1; i++)
         {
                 NetWorkingCSharp.ServerTCP.ClientsGameData[posPlayers[i]].SetPosOnBoard(i);
         }
@@ -260,16 +268,29 @@ public class GameMgr : MonoBehaviour
         {
             SaveData data = FindObjectOfType<SaveData>();
 
-            playMod = Instantiate(PlayModPrefab).GetComponent<PlayModMgr>();
+            PlayMod = Instantiate(PlayModPrefab).GetComponent<PlayModMgr>();
 
             int key = -1;
             if (NetWorkingCSharp.ClientTCP.Tcp != null)
                 key = NetWorkingCSharp.ClientTCP.Tcp.clientData.Id;
             else if (NetWorkingCSharp.ServerTCP.host)
                 key = 0;
-            playMod.CreateBoard(data.beginPlayGameData, CardTextures, key);
+            PlayMod.CreateBoard(data.beginPlayGameData, CardTextures, key);
+            PlayMod.deck = deckGame;
+
         }
         SceneManager.sceneLoaded -= OnSceneLoaded;
+    }
+
+    private void HostPlayerAction(NetWorkingCSharp.Header header)
+    {
+        UnoNetworkingGameData.GameData gameData = (UnoNetworkingGameData.GameData)header.Data;
+
+        gameData = PlayMod.AnalyseGameData(gameData);
+
+        header.Data = gameData;
+
+        NetWorkingCSharp.ServerSend.SendTCPDataToAll(header);
     }
 
     public void DisconnectClient()
@@ -284,5 +305,20 @@ public class GameMgr : MonoBehaviour
     {
         if (NetWorkingCSharp.ServerTCP.host)
             NetWorkingCSharp.ServerTCP.CloseListener();
+    }
+
+    // send data in case you are the host or the client
+    public static void SendNetWorkingData(NetWorkingCSharp.Header header)
+    {
+        if(NetWorkingCSharp.ServerTCP.host)
+        {
+            header.clientData = NetWorkingCSharp.ServerTCP.Clients[0].clientData;
+            NetWorkingCSharp.ServerSend.SendTCPDataToAll(header);
+        }
+        else
+        {
+            header.clientData = NetWorkingCSharp.ClientTCP.Tcp.clientData;
+            NetWorkingCSharp.ClientTCP.SendToServer(header);
+        }
     }
 }

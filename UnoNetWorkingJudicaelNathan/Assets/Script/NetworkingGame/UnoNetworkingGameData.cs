@@ -35,6 +35,18 @@ public class PlayerGameData
         }
     }
 
+    public static bool CanPutCardOnBoard(CardType cardOnBoard, CardType cardPlayer)
+    {
+        if (cardOnBoard.CardColor == cardPlayer.CardColor)
+            return true;
+        if (cardOnBoard.Effect == cardPlayer.Effect)
+            return true;
+        if (cardPlayer.CardColor == CardType.Color.ANY)
+            return true;
+
+        return false;
+    }
+
     [ProtoContract]
     public struct GameData
     {
@@ -132,7 +144,7 @@ public class UnoNetworkingGameData
     {
         public enum TypeData
         {
-            DEFAULT,
+            DEFAULT = 0,
             DRAWCARDS,
             CARDPLAY
         }

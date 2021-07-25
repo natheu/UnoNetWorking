@@ -207,6 +207,7 @@ namespace NetWorkingCSharp
                         Debug.Log("Yoo");
 
                         object data = null;
+                        bool ToSend = true;
                         switch (header.TypeData)
                         {
                             case EType.Error:
@@ -228,6 +229,7 @@ namespace NetWorkingCSharp
                                 break;
                             case EType.PLAYERACTION:
                                 data  = Serializer.DeserializeWithLengthPrefix<UnoNetworkingGameData.GameData>(currClient.stream, PrefixStyle.Fixed32);
+                                ToSend = false;
                                 break;
                             case EType.DISCONNECT:
                                 DisconnectClient(currClient);
@@ -237,7 +239,8 @@ namespace NetWorkingCSharp
                         header.clientData = currClient.clientData;
                         header.Data = data;
                         ClientTCP.Tcp.headersReciev.Enqueue(header);
-                        ServerSend.SendTCPDataToAllExept(currClient.clientData.Id, header);
+                        if(ToSend)
+                            ServerSend.SendTCPDataToAllExept(currClient.clientData.Id, header);
                     }
                     catch(SocketException ex)
                     {
