@@ -98,6 +98,7 @@ public class PlayModMgr : MonoBehaviour
                 AnalyseEffect(ref data);
                 break;
             case UnoNetworkingGameData.GameData.TypeData.DRAWCARDS:
+                ChooseDrawCard(ref data);
                 break;
         }
 
@@ -140,6 +141,11 @@ public class PlayModMgr : MonoBehaviour
         */
     }
 
+    public void ChooseDrawCard(ref UnoNetworkingGameData.GameData data)
+    {
+        data.CardTypePutOnBoard = new PlayerGameData.CardType[] { deck.GetNextCard() };
+    }
+
     public void UpdateActionPlayer(int IdPLayerAction, UnoNetworkingGameData.GameData data)
     {
         Debug.Log("Update Player");
@@ -155,6 +161,7 @@ public class PlayModMgr : MonoBehaviour
                 EffectPlayCard(cardType, data);
                 break;
             case UnoNetworkingGameData.GameData.TypeData.DRAWCARDS:
+                players[CurrentPlayer].DrawCards(data);
                 break;
         }
     }
@@ -231,7 +238,7 @@ public class PlayModMgr : MonoBehaviour
 
         CardOnBoardObject = Instantiate(PrefabCard, this.transform);
 
-        CardOnBoardObject.transform.rotation = Quaternion.Euler(180, 0, 0);
+        CardOnBoardObject.transform.rotation = Quaternion.Euler(80, 0, 0);
         CardOnBoardObject.name = ((int)CardOnBoard.CardColor).ToString() + "_" + CardOnBoard.Effect.ToString();
         /*
         foreach(UnoNetworkingGameData.GameData data in playerHandData)

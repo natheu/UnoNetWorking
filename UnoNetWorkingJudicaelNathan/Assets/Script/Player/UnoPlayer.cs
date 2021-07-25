@@ -20,6 +20,8 @@ public class UnoPlayer : MonoBehaviour
     UnoCardTextures Textures;
 
     [SerializeField]
+    LayerMask deckMask;
+    [SerializeField]
     LayerMask cardMask;
     PlayerGameData.CardType currentCard = new PlayerGameData.CardType();
     int indexCurrentCard = -1;
@@ -46,7 +48,7 @@ public class UnoPlayer : MonoBehaviour
             //Debug.Log(card.CardColor);
             //CardsInHandTest.Add(card);
             CardsInHand[(int)card.CardColor - 1].Add(card.Effect);
-            SpawnCards(card, j, new Vector3(-2 + j, 1, j * 0.0001f));
+            SpawnCards(card, j, new Vector3(-1 + j, 2, j * 0.0001f));
             //CardsInHandTest2.Add(, card);
             j++;
         }
@@ -69,6 +71,11 @@ public class UnoPlayer : MonoBehaviour
         else
             gm.transform.GetChild(0).transform.GetChild(0).gameObject.layer = LayerMask.NameToLayer("OtherPCard");
     }
+
+    /*public void AddCards()
+    {
+
+    }*/
 
     // Delete the card play by the current player
     // return the card that has been played
@@ -94,6 +101,7 @@ public class UnoPlayer : MonoBehaviour
         foreach (PlayerGameData.CardType cardType in data.CardTypePutOnBoard)
         {
             CardsInHand[(int)cardType.CardColor].Add(cardType.Effect);
+            SpawnCards(cardType, 0, Vector3.zero);
             // TO DO Animation Draw Cards
         }
     }
@@ -113,12 +121,12 @@ public class UnoPlayer : MonoBehaviour
                 {
                     cardSelected.position = new Vector3(cardSelected.position.x, 1, cardSelected.position.z);
                     cardSelected = TNameCard;
-                    cardSelected.transform.position = new Vector3(TNameCard.position.x, 1.5f, TNameCard.position.z);
+                    cardSelected.transform.position = new Vector3(TNameCard.position.x, 1f, TNameCard.position.z);
                 }
                 else
                 {
                     cardSelected = outHit.transform;
-                    cardSelected.transform.position = new Vector3(TNameCard.position.x, 1.5f, TNameCard.position.z);
+                    cardSelected.transform.position = new Vector3(TNameCard.position.x, 1f, TNameCard.position.z);
                 }
 
                 if (nameCardSplit.Length >= 2)
@@ -133,7 +141,7 @@ public class UnoPlayer : MonoBehaviour
             }
             else if(cardSelected != null)
             {
-                cardSelected.position = new Vector3(cardSelected.position.x, 1, cardSelected.position.z);
+                cardSelected.position = new Vector3(cardSelected.position.x, 0, cardSelected.position.z);
                 cardSelected = null;
                 currentCard = new PlayerGameData.CardType();
                 indexCurrentCard = -1;
@@ -183,6 +191,14 @@ public class UnoPlayer : MonoBehaviour
                     {
                         Debug.Log("You need To think again color : " + currentCard.CardColor + "effect : " + currentCard.Effect);
                     }
+                }
+
+                RaycastHit outHit;
+                if (Physics.Raycast(Camera.main.ScreenPointToRay(Input.mousePosition), out outHit, 1000f, deckMask))
+                {
+                    UnoNetworkingGameData.GameData gameData = new UnoNetworkingGameData.GameData();
+                    gameData.type = UnoNetworkingGameData.GameData.TypeData.DRAWCARDS;
+                    return gameData;
                 }
 
             }

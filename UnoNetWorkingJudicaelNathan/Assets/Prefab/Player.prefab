@@ -190,6 +190,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: aff6482fdae5075499ec7674c8f9cd5a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  deckMask:
+    serializedVersion: 2
+    m_Bits: 256
   cardMask:
     serializedVersion: 2
     m_Bits: 64
