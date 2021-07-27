@@ -15,9 +15,11 @@ public class UnoPlayer : MonoBehaviour
 
     EController controller = EController.DEFAULT;
     List<List<int>> CardsInHand = new List<List<int>>();
-    List<PlayerGameData.CardType> CardsInHandTest = new List<PlayerGameData.CardType>();
-    Dictionary<int, PlayerGameData.CardType> CardsInHandTest2 = new Dictionary<int, PlayerGameData.CardType>();
+    /*List<PlayerGameData.CardType> CardsInHandTest = new List<PlayerGameData.CardType>();
+    Dictionary<int, PlayerGameData.CardType> CardsInHandTest2 = new Dictionary<int, PlayerGameData.CardType>();*/
     UnoCardTextures Textures;
+
+    int NbCard = 0;
 
     [SerializeField]
     LayerMask deckMask;
@@ -43,12 +45,13 @@ public class UnoPlayer : MonoBehaviour
             CardsInHand.Add(new List<int>());
         }
         int j = 0;
-        foreach(PlayerGameData.CardType card in beginCard)
+        foreach (PlayerGameData.CardType card in beginCard)
         {
             //Debug.Log(card.CardColor);
             //CardsInHandTest.Add(card);
-            CardsInHand[(int)card.CardColor - 1].Add(card.Effect);
-            SpawnCards(card, j, new Vector3(-1 + j, 2, j * 0.0001f));
+            /*CardsInHand[(int)card.CardColor - 1].Add(card.Effect);
+            SpawnCards(card, j, new Vector3(-1 + j, 2, j * 0.0001f));*/
+            AddCard(card);
             //CardsInHandTest2.Add(, card);
             j++;
         }
@@ -70,13 +73,68 @@ public class UnoPlayer : MonoBehaviour
             gm.transform.GetChild(0).transform.GetChild(0).gameObject.layer = LayerMask.NameToLayer("PlayerCard");
         else
             gm.transform.GetChild(0).transform.GetChild(0).gameObject.layer = LayerMask.NameToLayer("OtherPCard");
+
+        gm.transform.SetSiblingIndex(index);
     }
 
-    /*public void AddCards()
+    public void AddCard(PlayerGameData.CardType cardToAdd)
     {
+        float disCards = 0.5f;
+        Vector3 direction = new Vector3(disCards, 0, 0);
+        NbCard++;
+        //int lasEffect = 0;
+        int count = CardsInHand[(int)cardToAdd.CardColor - 1].Count;
 
-    }*/
+        float offsetMiddle = 0f;
+        if (NbCard % 2 == 0)
+            offsetMiddle = 0.5f;
 
+        float middleCard = (int)(NbCard / 2f) + offsetMiddle;
+
+        float countOffset = 0;
+        for (int i = 1; i <= 4; i++)
+        {
+            int countCurrentColor = CardsInHand[i - 1].Count;
+            if ((PlayerGameData.CardType.Color)i == cardToAdd.CardColor)
+                countCurrentColor++;
+            float offsetCurrent = 0f;
+            if (countCurrentColor % 2f == 0)
+                offsetCurrent = 0.5f;
+             transform.GetChild(i).localPosition = new Vector3(middleCard * -disCards, 0f, i * 0.0001f) + direction * (countOffset + (int)(countCurrentColor / 2f) + offsetCurrent);
+
+            countOffset += countCurrentColor;
+
+        }
+
+        bool cardAdd = false;
+
+        offsetMiddle = 0f;
+        if ((CardsInHand[(int)cardToAdd.CardColor - 1].Count + 1) % 2 == 0)
+            offsetMiddle = 0.5f;
+        middleCard = (int)((CardsInHand[(int)cardToAdd.CardColor - 1].Count + 1) / 2f) + offsetMiddle;
+
+        for (int i = 0; i < CardsInHand[(int)cardToAdd.CardColor - 1].Count; i++)
+        {
+            if (CardsInHand[(int)cardToAdd.CardColor - 1][i] > cardToAdd.Effect && !cardAdd)
+            {
+                CardsInHand[(int)cardToAdd.CardColor - 1].Insert(i, cardToAdd.Effect);
+                SpawnCards(cardToAdd, i, 
+                            new Vector3(-disCards * middleCard, 0, i * 0.0001f) + direction * i);
+                cardAdd = true;
+            }
+            else
+            {
+                transform.GetChild((int)cardToAdd.CardColor).GetChild(i).localPosition = 
+                                            new Vector3(-disCards * middleCard, 0, i * 0.0001f) + direction * i;
+            }
+        }
+        if (!cardAdd)
+        {
+            CardsInHand[(int)cardToAdd.CardColor - 1].Add(cardToAdd.Effect);
+            SpawnCards(cardToAdd, CardsInHand[(int)cardToAdd.CardColor - 1].Count - 1, new Vector3(disCards * (CardsInHand[(int)cardToAdd.CardColor - 1].Count + offsetMiddle), 0f, 
+                                                    CardsInHand[(int)cardToAdd.CardColor - 1].Count * 0.0001f));
+        }
+    }
     // Delete the card play by the current player
     // return the card that has been played
     public PlayerGameData.CardType CardPlay(ref UnoNetworkingGameData.GameData data)
