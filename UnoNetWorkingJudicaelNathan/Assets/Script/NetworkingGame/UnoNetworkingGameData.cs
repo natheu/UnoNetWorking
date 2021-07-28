@@ -41,7 +41,7 @@ public class PlayerGameData
             return true;
         if (cardOnBoard.Effect == cardPlayer.Effect)
             return true;
-        if (cardPlayer.CardColor == CardType.Color.ANY)
+        if (cardPlayer.CardColor == CardType.Color.ANY || cardOnBoard.CardColor == CardType.Color.ANY)
             return true;
 
         return false;

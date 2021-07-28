@@ -47,7 +47,7 @@ public class PlayModMgr : MonoBehaviour
             }
             */
         }
-
+        //Debug.Log("trun : " + CurrentPlayer);
         UnoNetworkingGameData.GameData gameData = players[CurrentPlayer].UpdatePlayer(CardOnBoard);
 
         if (!gameData.Equals(default(UnoNetworkingGameData.GameData)))
@@ -55,7 +55,7 @@ public class PlayModMgr : MonoBehaviour
             // Update the board of the player host
             if (NetWorkingCSharp.ServerTCP.host)
             {
-                gameData = AnalyseGameData(gameData);
+                gameData = AnalyseGameData(ref gameData);
                 NetWorkingCSharp.Header header = new NetWorkingCSharp.Header(gameData, NetWorkingCSharp.EType.PLAYERACTION,
                                                                                             new NetWorkingCSharp.ServerTCP.ClientData());
                 Debug.Log("Host PLay");
@@ -88,7 +88,7 @@ public class PlayModMgr : MonoBehaviour
         return next;
     }
 
-    public UnoNetworkingGameData.GameData AnalyseGameData(UnoNetworkingGameData.GameData data)
+    public UnoNetworkingGameData.GameData AnalyseGameData(ref UnoNetworkingGameData.GameData data)
     {
         switch (data.type)
         {
@@ -102,7 +102,7 @@ public class PlayModMgr : MonoBehaviour
                 break;
         }
 
-        UpdateActionPlayer(0, data); 
+        UpdateActionPlayer(0, ref data); 
 
         return data;
     }
@@ -146,7 +146,7 @@ public class PlayModMgr : MonoBehaviour
         data.CardTypePutOnBoard = new PlayerGameData.CardType[] { deck.GetNextCard() };
     }
 
-    public void UpdateActionPlayer(int IdPLayerAction, UnoNetworkingGameData.GameData data)
+    public void UpdateActionPlayer(int IdPLayerAction, ref UnoNetworkingGameData.GameData data)
     {
         Debug.Log("Update Player");
         switch(data.type)
@@ -185,18 +185,23 @@ public class PlayModMgr : MonoBehaviour
             CurrentPlayer = GetNextPlayer(nextPlayer);
             return;
         }
-        /*
+        
         // the card plays is Turn Pass
-        else if(cardType.Effect == 11)
+        if(cardType.Effect == 11)
         {
-
+            CurrentPlayer = GetNextPlayer(GetNextPlayer(CurrentPlayer));
+            // Add anim or something to tell your turn is passed
+            return;
         }
+        
         // the card plays is Invert Direction 
-        else if (cardType.Effect == 12)
+        if (cardType.Effect == 12)
         {
-
+            DirectionBoard *= -1;
+            CurrentPlayer = GetNextPlayer(CurrentPlayer);
+            // animation tu show that the direction of the board changed
+            return;
         }
-        */
 
         CurrentPlayer = GetNextPlayer(CurrentPlayer);
         return;

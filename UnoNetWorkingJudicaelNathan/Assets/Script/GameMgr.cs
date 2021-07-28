@@ -85,7 +85,10 @@ public class GameMgr : MonoBehaviour
                     if (NetWorkingCSharp.ServerTCP.host)
                         HostPlayerAction(header);
                     else
-                        PlayMod.UpdateActionPlayer(header.clientData.Id, (UnoNetworkingGameData.GameData)header.Data);
+                    {
+                        UnoNetworkingGameData.GameData gameData = (UnoNetworkingGameData.GameData)header.Data;
+                        PlayMod.UpdateActionPlayer(header.clientData.Id, ref gameData);
+                    }
                     break;
                 case NetWorkingCSharp.EType.DISCONNECT:
                     if (NetWorkingCSharp.ServerTCP.stateGame == NetWorkingCSharp.ServerTCP.EStateGame.RUNNING)
@@ -286,7 +289,7 @@ public class GameMgr : MonoBehaviour
     {
         UnoNetworkingGameData.GameData gameData = (UnoNetworkingGameData.GameData)header.Data;
 
-        gameData = PlayMod.AnalyseGameData(gameData);
+        gameData = PlayMod.AnalyseGameData(ref gameData);
 
         header.Data = gameData;
 
