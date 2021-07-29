@@ -85,6 +85,7 @@ public class UnoPlayer : MonoBehaviour
     {
         Vector3 direction = new Vector3(DistBetweenCards, 0, 0);
         int newNbCard = CardsInHand.Count + 1;
+
         float offsetMiddle = 0f;
         if (newNbCard % 2 == 0)
             offsetMiddle = 0.5f;
@@ -93,6 +94,7 @@ public class UnoPlayer : MonoBehaviour
         bool cardAdd = false;
         for (int i = 0; i < CardsInHand.Count; i++)
         {
+            // the 
             if (CardsInHand[i].CardColor == cardToAdd.CardColor && !cardAdd)
             {
                 if (CardsInHand[i].Effect > cardToAdd.Effect)
@@ -131,21 +133,25 @@ public class UnoPlayer : MonoBehaviour
     void RemoveCard(PlayerGameData.CardType cardToRemove, int index)
     {
         Vector3 direction = new Vector3(DistBetweenCards, 0, 0);
-        int newNbCard = CardsInHand.Count + 1;
+
+
+        int newNbCard = CardsInHand.Count - 1;
         float offsetMiddle = 0f;
         if (newNbCard % 2 == 0)
             offsetMiddle = 0.5f;
 
         float middleCard = (int)(newNbCard / 2f) + offsetMiddle;
 
-        CardsInHand.RemoveAt(index);
-        Destroy(transform.GetChild(6).GetChild(index).gameObject);
-
+        Debug.Log("Number remove : " + CardsInHand.Count);
         for (int i = 0; i < CardsInHand.Count; i++)
         {
-            transform.GetChild(6).GetChild(i).localPosition = new Vector3(middleCard * -DistBetweenCards, 0f, i * 0.001f) + direction * i;
+            if(i != index)
+                transform.GetChild(6).GetChild(i).localPosition = new Vector3(middleCard * -DistBetweenCards, 0f, i * 0.001f) + direction * i;
         }
+        CardsInHand.RemoveAt(index);
+        Destroy(transform.GetChild(6).GetChild(index).gameObject);
     }
+
     /*
     public void AddCard(PlayerGameData.CardType cardToAdd)
     {
@@ -263,6 +269,8 @@ public class UnoPlayer : MonoBehaviour
                     currentCard.CardColor = (PlayerGameData.CardType.Color)int.Parse(nameCardSplit[0]);
 
                     currentCard.Effect = int.Parse(nameCardSplit[1]);
+
+                    //currentCard = CardsInHand[FindPosCard(TNameCard)];
 
                     indexCurrentCard = FindPosCard(TNameCard);
                     //Debug.Log("It's working");

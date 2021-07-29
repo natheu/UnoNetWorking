@@ -102,7 +102,7 @@ public class PlayModMgr : MonoBehaviour
                 break;
         }
 
-        UpdateActionPlayer(0, ref data); 
+        UpdateActionPlayer(0, data); 
 
         return data;
     }
@@ -146,7 +146,7 @@ public class PlayModMgr : MonoBehaviour
         data.CardTypePutOnBoard = new PlayerGameData.CardType[] { deck.GetNextCard() };
     }
 
-    public void UpdateActionPlayer(int IdPLayerAction, ref UnoNetworkingGameData.GameData data)
+    public void UpdateActionPlayer(int IdPLayerAction, UnoNetworkingGameData.GameData data)
     {
         Debug.Log("Update Player");
         switch(data.type)

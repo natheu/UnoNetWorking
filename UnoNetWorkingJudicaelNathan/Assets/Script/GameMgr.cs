@@ -87,7 +87,7 @@ public class GameMgr : MonoBehaviour
                     else
                     {
                         UnoNetworkingGameData.GameData gameData = (UnoNetworkingGameData.GameData)header.Data;
-                        PlayMod.UpdateActionPlayer(header.clientData.Id, ref gameData);
+                        PlayMod.UpdateActionPlayer(header.clientData.Id, gameData);
                     }
                     break;
                 case NetWorkingCSharp.EType.DISCONNECT:
