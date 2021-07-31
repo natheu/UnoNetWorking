@@ -13,4 +13,64 @@ MonoBehaviour:
   m_Name: CardTextures
   m_EditorClassIdentifier: 
   FolderPath: 
+  CardTextures:
+  - mats:
+    - {fileID: 2800000, guid: 11cff2c79a5c1e3469e4aa8ae7a9eb46, type: 3}
+    - {fileID: 2800000, guid: 02ec169a9c845df4c9cf2fadcc43a981, type: 3}
+    - {fileID: 2800000, guid: 7f5e46cf5f488504691496ce1dc6bbcc, type: 3}
+    - {fileID: 2800000, guid: 6349a13e24ed27b4e8be31655d35371e, type: 3}
+    - {fileID: 2800000, guid: 5593edf7e35bdd041ac728f723d431ae, type: 3}
+    - {fileID: 2800000, guid: c67fe126d1f025a4a93e6efd8f1a53c2, type: 3}
+    - {fileID: 2800000, guid: e7092d0e601ec984fa8843f5b310c657, type: 3}
+    - {fileID: 2800000, guid: a64c2c977f62eb64e91512132e424035, type: 3}
+    - {fileID: 2800000, guid: 2e39fc519734e914a841043e48f636cd, type: 3}
+    - {fileID: 2800000, guid: faf2ffb7873fffb4d95428c3856bb720, type: 3}
+    - {fileID: 2800000, guid: 84c0971172c44d04eb5c802c63f7e9cf, type: 3}
+    - {fileID: 2800000, guid: 66a38c982985ffd408a3aa7378252480, type: 3}
+    - {fileID: 2800000, guid: 360f6ee7a10c88f4a984f76239792cc2, type: 3}
+  - mats:
+    - {fileID: 2800000, guid: bbfad9ab22903774d9d4fd4ec019fe5f, type: 3}
+    - {fileID: 2800000, guid: 1d71a4b6eb042ba438712acdad923826, type: 3}
+    - {fileID: 2800000, guid: 1165360c55ebe0145892b86fa9ca9e69, type: 3}
+    - {fileID: 2800000, guid: 94c24d9b7f46b454fa5d61c9ee58c29e, type: 3}
+    - {fileID: 2800000, guid: 66ce3c44081976b45adf37cc7ecbbf3e, type: 3}
+    - {fileID: 2800000, guid: a3a01f29a2661634dbf75702e7411fab, type: 3}
+    - {fileID: 2800000, guid: bd38c298b03ccc3479502a486565b922, type: 3}
+    - {fileID: 2800000, guid: 525afdcd08dc6384ba5c2ddf4660a0e5, type: 3}
+    - {fileID: 2800000, guid: 0648700dcf4d20649b72420952d3efad, type: 3}
+    - {fileID: 2800000, guid: de1cfa2e337b93c4b8c3ee119eb82390, type: 3}
+    - {fileID: 2800000, guid: a02b8a3881b44254bb16454039a4040a, type: 3}
+    - {fileID: 2800000, guid: 2fd360230d988244abae1a4a669b1cbd, type: 3}
+    - {fileID: 2800000, guid: a2feb1363c719b34ca1929c7f2d89b15, type: 3}
+  - mats:
+    - {fileID: 2800000, guid: a18d804e1d138f94dbf4eaa6994d4e68, type: 3}
+    - {fileID: 2800000, guid: 45b2143fd6819b4468d779bf22632b52, type: 3}
+    - {fileID: 2800000, guid: 2d1f391e2b6b33c44b2bd7477fc861c0, type: 3}
+    - {fileID: 2800000, guid: 895a144b5d23a38479b2d5fe60dbb4cf, type: 3}
+    - {fileID: 2800000, guid: 8c89edd0353dfe840b2cbb13a19c70a2, type: 3}
+    - {fileID: 2800000, guid: 959f67e163603e1478b7345dd60bdf31, type: 3}
+    - {fileID: 2800000, guid: 0b4b0cf6abfc7894eb0e0beb91e15730, type: 3}
+    - {fileID: 2800000, guid: fd2e11f7e1359cf4cbb5e47ac2a64f66, type: 3}
+    - {fileID: 2800000, guid: 6bbfc50a2225692439a9ade7ac867efb, type: 3}
+    - {fileID: 2800000, guid: 7b705c397706916468014a10a55a5117, type: 3}
+    - {fileID: 2800000, guid: 256ffbdd4e54ed745a6099dd41282f20, type: 3}
+    - {fileID: 2800000, guid: 46a4d9052f13d2940b8db48a3eb49ca9, type: 3}
+    - {fileID: 2800000, guid: a1578a0b9da028e4a8aa5142b8f4be29, type: 3}
+  - mats:
+    - {fileID: 2800000, guid: 91b7b7209fe21dc4eb2e66e59c7eac29, type: 3}
+    - {fileID: 2800000, guid: c974972a74561fe4caf85fb537d3a993, type: 3}
+    - {fileID: 2800000, guid: e801bc3cefd5b594b9e17487cca5280d, type: 3}
+    - {fileID: 2800000, guid: e364050327da3ac4c82c4c1359481096, type: 3}
+    - {fileID: 2800000, guid: 6ee5c11208454ee4dbd04b2725287c6a, type: 3}
+    - {fileID: 2800000, guid: 8608f280b1b97e04dbe7ad0176d4f0ef, type: 3}
+    - {fileID: 2800000, guid: 5ffdf137ea5a3e34e8bc04c4bb5c1fab, type: 3}
+    - {fileID: 2800000, guid: 2d4e053f055c17843a31b0c7fd9a3073, type: 3}
+    - {fileID: 2800000, guid: 85c48260b46faf948a086570c449ccf4, type: 3}
+    - {fileID: 2800000, guid: 5cdcc217e48959641aa88111259fadc8, type: 3}
+    - {fileID: 2800000, guid: 33c99705b6986ef48b63fe63918fdb23, type: 3}
+    - {fileID: 2800000, guid: 4880fc70a9dc4f840bf213e22c87b37a, type: 3}
+    - {fileID: 2800000, guid: c6b168719f084074e89aa2c33306d7ff, type: 3}
+  - mats:
+    - {fileID: 2800000, guid: d19e4b825b32493449bf67575daa0780, type: 3}
+    - {fileID: 2800000, guid: f49e638e276b3874681a6e7ddedcb3ea, type: 3}
   PrefabCards: {fileID: 71273314603560559, guid: cce4da0933c8a40409d3cc4340c4ab0f, type: 3}

@@ -132,6 +132,7 @@ namespace NetWorkingCSharp
                     catch (Exception ex)
                     {
                         //TODO : disconnect
+                        connected = false;
                         Disconnect();
                         Debug.Log(ex.Message);
                         break;
@@ -144,7 +145,11 @@ namespace NetWorkingCSharp
 
             public void Disconnect()
             {
+                Header header = new Header(null, EType.DISCONNECT, clientData);
+                SendToServer(header);
                 Socket.Close();
+                headersReciev.Enqueue(header);
+                connected = false;
             }
 
             public void SendToServer(Header header)

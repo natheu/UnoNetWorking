@@ -91,8 +91,22 @@ public class GameMgr : MonoBehaviour
                     }
                     break;
                 case NetWorkingCSharp.EType.DISCONNECT:
-                    if (NetWorkingCSharp.ServerTCP.stateGame == NetWorkingCSharp.ServerTCP.EStateGame.RUNNING)
-                        PlayMod.PlayerDisconnected((int)header.Data);
+                    if (header.clientData.Id != NetWorkingCSharp.ClientTCP.Tcp.clientData.Id)
+                    {
+                        if (NetWorkingCSharp.ServerTCP.stateGame == NetWorkingCSharp.ServerTCP.EStateGame.RUNNING)
+                            PlayMod.PlayerDisconnected((int)header.Data);
+                    }
+                    else
+                    {
+                        if(PlayMod != null)
+                        {
+                            DisconnectLoadScene();
+                        }
+                        else if(NetWorkingCSharp.ServerTCP.stateGame == NetWorkingCSharp.ServerTCP.EStateGame.LOBBY)
+                        {
+                            Debug.Log("Not fully implemented");
+                        }
+                    }
                     break;
             }
         }
@@ -105,6 +119,7 @@ public class GameMgr : MonoBehaviour
         foreach(NetWorkingCSharp.ServerTCP.ClientData ClientData in clients)
         {
             NetWorkingCSharp.ServerTCP.ClientsGameData.Add(ClientData.Id, PlayerGameData.CreateUnoGameData(ClientData));
+            Debug.Log(ClientData.Name);
         }
     }
 
@@ -121,7 +136,12 @@ public class GameMgr : MonoBehaviour
     public bool CreateClient(string Ip, int port)
     {
         client = new NetWorkingCSharp.ClientTCP();
-        return NetWorkingCSharp.ClientTCP.CreateClient(Ip);
+        bool isSucces = NetWorkingCSharp.ClientTCP.CreateClient(Ip);
+
+        if (isSucces)
+            NetWorkingCSharp.ServerTCP.SetState(NetWorkingCSharp.ServerTCP.EStateGame.LOBBY);
+
+        return isSucces;
     }
 
     public void SendMsg(string msg, NetWorkingCSharp.EType messageType = NetWorkingCSharp.EType.MSG)
@@ -129,12 +149,20 @@ public class GameMgr : MonoBehaviour
         NetWorkingCSharp.Header header = new NetWorkingCSharp.Header(msg, messageType, new NetWorkingCSharp.ServerTCP.ClientData());
         if (NetWorkingCSharp.ServerTCP.host)
         {
+            if (messageType == NetWorkingCSharp.EType.UPDATENAME)
+                NetWorkingCSharp.ServerTCP.ClientsGameData[0].Updatename(msg);
             header.clientData = NetWorkingCSharp.ServerTCP.Clients[0].clientData;
             NetWorkingCSharp.ServerSend.SendTCPDataToAll(header);
         }
         else
         {
-            header.clientData = NetWorkingCSharp.ClientTCP.Tcp.clientData;
+            NetWorkingCSharp.ServerTCP.ClientData clientData = NetWorkingCSharp.ClientTCP.Tcp.clientData;
+            if (messageType == NetWorkingCSharp.EType.UPDATENAME)
+            {
+                NetWorkingCSharp.ServerTCP.ClientsGameData[clientData.Id].Updatename(msg);
+                NetWorkingCSharp.ClientTCP.Tcp.clientData.Name = msg;
+            }
+            header.clientData = clientData;
             NetWorkingCSharp.ClientTCP.SendToServer(header);
         }
     }
@@ -253,7 +281,7 @@ public class GameMgr : MonoBehaviour
 
         LoadGame(gameData);
     }
-
+    
     private void LoadGame(UnoNetworkingGameData.GameData[] gameData)
     {
         SceneManager.sceneLoaded += OnSceneLoaded;
@@ -262,6 +290,13 @@ public class GameMgr : MonoBehaviour
 
         SceneManager.LoadScene("PlayScene");
 
+    }
+
+    void DisconnectLoadScene()
+    {
+        SceneManager.LoadScene("BeginScene");
+        NetWorkingCSharp.ServerTCP.SetState(NetWorkingCSharp.ServerTCP.EStateGame.DEFAULT);
+        PlayMod = null;
     }
 
     // called second
@@ -298,8 +333,6 @@ public class GameMgr : MonoBehaviour
 
     public void DisconnectClient()
     {
-        NetWorkingCSharp.ClientTCP.SendToServer(new NetWorkingCSharp.Header(null, NetWorkingCSharp.EType.DISCONNECT,
-                                                                            NetWorkingCSharp.ClientTCP.Tcp.clientData));
         NetWorkingCSharp.ClientTCP.Disconnect();
         client = null;
     }

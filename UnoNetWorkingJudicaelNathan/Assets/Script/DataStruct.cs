@@ -85,6 +85,14 @@ public class DataStruct
             return tmpCard;
         }
 
+        public void AddNewCard(PlayerGameData.CardType cardToAdd)
+        {
+            if(Cards.Count > 10)
+            {
+                Cards.Insert(Random.Range(5, Cards.Count - 1), cardToAdd);
+            }
+        }
+
     }
 }
 

@@ -34,6 +34,7 @@ namespace NetWorkingCSharp
             public ClientServ(int ID)
             {
                 clientData.Id = ID;
+                clientData.Name = "Client" + ID;
             }
 
             public void Connect(TcpClient socket)
@@ -204,8 +205,6 @@ namespace NetWorkingCSharp
                             continue;
                         }
 
-                        Debug.Log("Yoo");
-
                         object data = null;
                         bool ToSend = true;
                         switch (header.TypeData)
@@ -291,6 +290,11 @@ namespace NetWorkingCSharp
         public static void GameRunning()
         {
             stateGame = EStateGame.RUNNING;
+        }
+
+        public static void SetState(EStateGame state)
+        {
+            stateGame = state;
         }
     }
 }
