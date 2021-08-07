@@ -41,7 +41,7 @@ public class PlayerGameData
             return true;
         if (cardOnBoard.Effect == cardPlayer.Effect)
             return true;
-        if (cardPlayer.CardColor == CardType.Color.ANY || cardOnBoard.CardColor == CardType.Color.ANY)
+        if (cardPlayer.CardColor == CardType.Color.ANY)
             return true;
 
         return false;
@@ -153,6 +153,7 @@ public class UnoNetworkingGameData
         public PlayerGameData.CardType[] CardTypePutOnBoard;
         [ProtoMember(2)]
         // became in the BeginPlay state the ID of the Client
+        // became in the CHOOSECOLOR state the color choose
         public int PosInHand;
         [ProtoMember(3)]
         // the type of data send When Card is play
@@ -165,9 +166,6 @@ public class UnoNetworkingGameData
             type = TypeData.DEFAULT;
         }
     }
-
-    //[ProtoMember(1)]
-    public NetWorkingCSharp.LocalClientDataGame<GameData> DataUnoPlayer;
 }
 
 

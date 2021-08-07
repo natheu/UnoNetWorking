@@ -45,3 +45,4 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   DistBetweenPlayer: 2
   PrefabPlayer: {fileID: 2293663900379474769, guid: 6862d5d76529053458b35bc906965d9a, type: 3}
+  PrefabChooseColor: {fileID: 6084246579352249199, guid: 9f05708360b17a347a623fb2ef2eb922, type: 3}

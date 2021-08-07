@@ -86,8 +86,8 @@ public class GameMgr : MonoBehaviour
                         HostPlayerAction(header);
                     else
                     {
-                        UnoNetworkingGameData.GameData gameData = (UnoNetworkingGameData.GameData)header.Data;
-                        PlayMod.UpdateActionPlayer(header.clientData.Id, gameData);
+                        NetWorkingCSharp.HeaderGameData headerGame = (NetWorkingCSharp.HeaderGameData)header.Data;
+                        PlayMod.UpdateActionPlayer(header.clientData.Id, headerGame);
                     }
                     break;
                 case NetWorkingCSharp.EType.DISCONNECT:
@@ -322,12 +322,18 @@ public class GameMgr : MonoBehaviour
 
     private void HostPlayerAction(NetWorkingCSharp.Header header)
     {
-        UnoNetworkingGameData.GameData gameData = (UnoNetworkingGameData.GameData)header.Data;
+        //UnoNetworkingGameData.GameData gameData = (UnoNetworkingGameData.GameData)header.Data;
+        NetWorkingCSharp.HeaderGameData headerData = (NetWorkingCSharp.HeaderGameData)header.Data;
+        if (headerData.dataType == NetWorkingCSharp.HeaderGameData.EDataType.CARD)
+        {
+            //UnoNetworkingGameData.GameData gameData = (UnoNetworkingGameData.GameData)headerData.GameData;
+            //gameData = PlayMod.AnalyseGameData(ref headerData);
+            PlayMod.AnalyseGameData(ref headerData);
 
-        gameData = PlayMod.AnalyseGameData(ref gameData);
+            //headerData.GameData = gameData;
+            header.Data = headerData;
 
-        header.Data = gameData;
-
+        }
         NetWorkingCSharp.ServerSend.SendTCPDataToAll(header);
     }
 

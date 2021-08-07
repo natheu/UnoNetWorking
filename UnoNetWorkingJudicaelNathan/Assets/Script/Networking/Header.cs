@@ -56,7 +56,8 @@ namespace NetWorkingCSharp
                     //Debug.LogError("Server header begin Play");
                     break;
                 case EType.PLAYERACTION:
-                    Serializer.SerializeWithLengthPrefix(stream, (UnoNetworkingGameData.GameData)header.Data, PrefixStyle.Fixed32);
+                    //Serializer.SerializeWithLengthPrefix(stream, (UnoNetworkingGameData.GameData)header.Data, PrefixStyle.Fixed32);
+                    ((HeaderGameData)header.Data).SendData(stream);
                     break;
             }
         }

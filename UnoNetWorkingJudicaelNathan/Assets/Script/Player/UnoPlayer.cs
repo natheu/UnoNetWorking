@@ -29,6 +29,7 @@ public class UnoPlayer : MonoBehaviour
     LayerMask CardMask;
     [SerializeField]
     LayerMask ChooseColor;
+
     LayerMask currentLayer;
 
     PlayerGameData.CardType currentCard = new PlayerGameData.CardType();
@@ -46,12 +47,6 @@ public class UnoPlayer : MonoBehaviour
     {
         Textures = textures;
         controller = c;
-
-        // OLD-----------
-        /*for (int i = 0; i < 5; i++)
-        {
-            CardsInHand.Add(new List<int>());
-        }*/
         //---------------
         // spawn all the card
         foreach (PlayerGameData.CardType card in beginCard)
@@ -66,7 +61,6 @@ public class UnoPlayer : MonoBehaviour
 
         Transform canvasPlayer = transform.GetChild(2);
         canvasPlayer.GetComponent<Canvas>().worldCamera = Camera.main;
-        //canvasPlayer.rotation = Camera.main.transform.rotation;
         canvasPlayer.GetChild(0).GetChild(0).GetComponent<Text>().text = name;
     }
 
@@ -76,7 +70,7 @@ public class UnoPlayer : MonoBehaviour
         GameObject gm = Instantiate(Textures.GetPrefab(), Vector3.zero, Quaternion.identity, transform.GetChild(indexCardsChild));
         gm.transform.localPosition = pos;
         gm.transform.localRotation = Quaternion.identity;
-        //gm.transform.parent = transform;
+
         gm.name = ((int)cardToSpawn.CardColor).ToString() + "_" + cardToSpawn.Effect.ToString();
 
         if (controller == EController.PLAYER)
@@ -86,12 +80,12 @@ public class UnoPlayer : MonoBehaviour
 
         if (controller == EController.PLAYER)
         {
-            if (cardToSpawn.CardColor != PlayerGameData.CardType.Color.ANY)
-                gm.transform.GetChild(0).GetChild(0).GetComponent<MeshRenderer>().material.mainTexture =
+            //if (cardToSpawn.CardColor != PlayerGameData.CardType.Color.ANY)
+            gm.transform.GetChild(0).GetChild(0).GetComponent<MeshRenderer>().material.mainTexture =
                                 Textures.GetSprite((int)cardToSpawn.CardColor - 1, cardToSpawn.Effect);
-            else
+            /*else
                 gm.transform.GetChild(0).GetChild(0).GetComponent<MeshRenderer>().material.mainTexture =
-                                Textures.GetSprite((int)cardToSpawn.CardColor - 1, cardToSpawn.Effect - PlayerGameData.PLUS_FOUR);
+                                Textures.GetSprite((int)cardToSpawn.CardColor - 1, cardToSpawn.Effect - PlayerGameData.PLUS_FOUR);*/
         }
         else
             gm.transform.GetChild(0).GetChild(0).GetComponent<MeshRenderer>().material.mainTexture = null;
@@ -113,23 +107,10 @@ public class UnoPlayer : MonoBehaviour
 
         for (int i = 0; i < CardsInHand.Count; i++)
         {
-            if (CardsInHand[i].CardColor == cardToAdd.CardColor && !cardAdd && CardsInHand[i].Effect > cardToAdd.Effect)
-            {
-                CardsInHand.Insert(i, cardToAdd);
-                SpawnCards(cardToAdd, i, new Vector3(middleCard * -DistBetweenCards, 0f, i * 0.001f) + direction * i);
-                cardAdd = true;
-            }
-            else if (CardsInHand[i].CardColor > cardToAdd.CardColor && !cardAdd)
-            {
-                CardsInHand.Insert(i, cardToAdd);
-                SpawnCards(cardToAdd, i, new Vector3(middleCard * -DistBetweenCards, 0f, i * 0.001f) + direction * i);
-                cardAdd = true;
-            }
-            else
-            {
-                transform.GetChild(indexCardsChild).GetChild(i).localPosition = new Vector3(middleCard * -DistBetweenCards, 0f, i * 0.001f) + direction * i;
-            }
 
+            //if (controller == EController.PLAYER)
+            SortCardForControllerPlayer(cardToAdd, i, middleCard, direction, ref cardAdd);
+            //else
         }
 
         if(!cardAdd)
@@ -141,6 +122,24 @@ public class UnoPlayer : MonoBehaviour
 
     }
 
+    void SortCardForControllerPlayer(PlayerGameData.CardType cardToAdd, int index, float middleCard, Vector3 direction, ref bool cardAdded)
+    {
+        if (CardsInHand[index].CardColor == cardToAdd.CardColor && !cardAdded && CardsInHand[index].Effect > cardToAdd.Effect)
+        {
+            CardsInHand.Insert(index, cardToAdd);
+            SpawnCards(cardToAdd, index, new Vector3(middleCard * -DistBetweenCards, 0f, index * 0.001f) + direction * index);
+            cardAdded = true;
+        }
+        else if (CardsInHand[index].CardColor > cardToAdd.CardColor && !cardAdded)
+        {
+            CardsInHand.Insert(index, cardToAdd);
+            SpawnCards(cardToAdd, index, new Vector3(middleCard * -DistBetweenCards, 0f, index * 0.001f) + direction * index);
+            cardAdded = true;
+        }
+        else
+            transform.GetChild(indexCardsChild).GetChild(index).localPosition = new Vector3(middleCard * -DistBetweenCards, 0f, index * 0.001f) + direction * index;
+    }
+
     void RemoveCard(PlayerGameData.CardType cardToRemove, int index)
     {
         Vector3 direction = new Vector3(DistBetweenCards, 0, 0);
@@ -150,13 +149,18 @@ public class UnoPlayer : MonoBehaviour
         if (newNbCard % 2 == 0)
             middleCard = middleCard - 1 + DistBetweenCards / 2f;
 
-        CardsInHand.RemoveAt(index);
-        Destroy(transform.GetChild(indexCardsChild).GetChild(index).gameObject);
+        // the index future index of the card
+        int tmpi = 0;
         for (int i = 0; i < CardsInHand.Count; i++)
         {
-            if(i != index)
-                transform.GetChild(indexCardsChild).GetChild(i).localPosition = new Vector3(middleCard * -DistBetweenCards, 0f, i * 0.001f) + direction * i;
+            if (i != index)
+            {
+                transform.GetChild(indexCardsChild).GetChild(i).localPosition = new Vector3(middleCard * -DistBetweenCards, 0f, tmpi * 0.001f) + direction * tmpi;
+                tmpi++;
+            }
         }
+        CardsInHand.RemoveAt(index);
+        Destroy(transform.GetChild(indexCardsChild).GetChild(index).gameObject);
     }
 
     /*
@@ -284,16 +288,18 @@ public class UnoPlayer : MonoBehaviour
                 }*/
                 if (outHit.transform.gameObject.layer == LayerMask.NameToLayer("PlayerCard"))
                     UpdatePosCardSelected(outHit);
-                else if (transform.gameObject.layer == LayerMask.NameToLayer("ChooseColor"))
+                else if (outHit.transform.gameObject.layer == LayerMask.NameToLayer("ChooseColor"))
+                {
                     currentCard.CardColor = (PlayerGameData.CardType.Color)int.Parse(outHit.transform.name);
+                    cardSelected = outHit.transform;
+                    //Debug.Log("ChooseColor");
+                }
             }
-            /*else if(cardSelected != null)
+            else if(cardSelected != null)
             {
-                cardSelected.position = new Vector3(cardSelected.position.x, 0, cardSelected.position.z);
-                cardSelected = null;
                 currentCard = new PlayerGameData.CardType();
                 indexCurrentCard = -1;
-            }*/
+            }
 
         }
     }
@@ -336,8 +342,10 @@ public class UnoPlayer : MonoBehaviour
         Gizmos.DrawSphere(Camera.main.ScreenToWorldPoint(Input.mousePosition), 1);
     }
 
-    public UnoNetworkingGameData.GameData UpdatePlayer(PlayerGameData.CardType onBoardCard, PlayModMgr.EPlayModState playState)
+    public NetWorkingCSharp.HeaderGameData UpdatePlayer(PlayerGameData.CardType onBoardCard, PlayModMgr.EPlayModState playState)
     {
+        NetWorkingCSharp.HeaderGameData header = new NetWorkingCSharp.HeaderGameData();
+        header.dataType = NetWorkingCSharp.HeaderGameData.EDataType.DEFAULT;
         if (controller == EController.PLAYER)
         {
             if (Input.GetMouseButtonDown(0))
@@ -347,26 +355,49 @@ public class UnoPlayer : MonoBehaviour
                     currentLayer = CardMask;
                     if (indexCurrentCard != -1)
                     {
-                        return CardChoose(onBoardCard);
+                        UnoNetworkingGameData.GameData data = CardChoose(onBoardCard);
+                        if(data.type != UnoNetworkingGameData.GameData.TypeData.DEFAULT)
+                        {
+                            header.dataType = NetWorkingCSharp.HeaderGameData.EDataType.CARD;
+                            header.GameData = data;
+                            return header;
+                        }
+                    }
+                    RaycastHit outHit;
+                    if (Physics.Raycast(Camera.main.ScreenPointToRay(Input.mousePosition), out outHit, 1000f, deckMask))
+                    {
+                        UnoNetworkingGameData.GameData gameData = new UnoNetworkingGameData.GameData();
+                        gameData.type = UnoNetworkingGameData.GameData.TypeData.DRAWCARDS;
+                        header.dataType = NetWorkingCSharp.HeaderGameData.EDataType.CARD;
+                        header.GameData = gameData;
+                        return header;
                     }
                 }
                 else if (playState == PlayModMgr.EPlayModState.WAITCOLOR)
                 {
-                    currentLayer = ChooseColor;
-                }
+                    Debug.Log("CHOOSE COLOR");
+                    header.dataType = NetWorkingCSharp.HeaderGameData.EDataType.CHOOSECOLOR;
+                    header.GameData = (int)currentCard.CardColor;
 
-                RaycastHit outHit;
-                if (playState == PlayModMgr.EPlayModState.PLAY && Physics.Raycast(Camera.main.ScreenPointToRay(Input.mousePosition), out outHit, 1000f, deckMask))
-                {
-                    UnoNetworkingGameData.GameData gameData = new UnoNetworkingGameData.GameData();
-                    gameData.type = UnoNetworkingGameData.GameData.TypeData.DRAWCARDS;
-                    return gameData;
+                    GameObject toDestroy = cardSelected.parent.gameObject;
+                    cardSelected = null;
+                    Destroy(toDestroy);
                 }
 
             }
         }
 
-        return new UnoNetworkingGameData.GameData();
+        return header;
+    }
+
+    public void ToChooseColor()
+    {
+        currentLayer = ChooseColor;
+    }
+
+    public void ToChooseCard()
+    {
+        currentLayer = CardMask;
     }
 
     private UnoNetworkingGameData.GameData CardChoose(PlayerGameData.CardType onBoardCard)

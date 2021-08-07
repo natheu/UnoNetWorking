@@ -227,7 +227,8 @@ namespace NetWorkingCSharp
                                 currClient.clientData.IsReady = !currClient.clientData.IsReady;
                                 break;
                             case EType.PLAYERACTION:
-                                data  = Serializer.DeserializeWithLengthPrefix<UnoNetworkingGameData.GameData>(currClient.stream, PrefixStyle.Fixed32);
+                                //data  = Serializer.DeserializeWithLengthPrefix<UnoNetworkingGameData.GameData>(currClient.stream, PrefixStyle.Fixed32);
+                                data  = HeaderGameData.ReadHeaderGameData(currClient.stream);
                                 ToSend = false;
                                 break;
                             case EType.DISCONNECT:

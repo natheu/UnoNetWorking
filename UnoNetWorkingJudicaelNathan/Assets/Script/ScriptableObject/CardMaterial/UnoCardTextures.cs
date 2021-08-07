@@ -24,6 +24,8 @@ public class UnoCardTextures : ScriptableObject
 
     public Texture GetSprite(int i, int j)
     {
+        if (j >= PlayerGameData.PLUS_FOUR)
+            j -= PlayerGameData.PLUS_FOUR;
         return CardTextures[i].mats[j];
     }
 
