@@ -86,8 +86,7 @@ public class GameMgr : MonoBehaviour
                         HostPlayerAction(header);
                     else
                     {
-                        NetWorkingCSharp.HeaderGameData headerGame = (NetWorkingCSharp.HeaderGameData)header.Data;
-                        PlayMod.UpdateActionPlayer(header.clientData.Id, headerGame);
+                        PlayMod.UpdateActionPlayer(header.clientData.Id, header);
                     }
                     break;
                 case NetWorkingCSharp.EType.DISCONNECT:

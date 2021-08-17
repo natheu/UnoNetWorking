@@ -14,10 +14,17 @@ public class UnoPlayer : MonoBehaviour
     }
     static int indexCardsChild = 1;
 
+    public enum EStateUNO
+    {
+        DEFAULT = 0,
+        UNO,
+        COUNTERUNO
+    }
+
     EController controller = EController.DEFAULT;
-    //List<List<int>> CardsInHand = new List<List<int>>();
+    //EStateUNO StateUno = EStateUNO.DEFAULT;
     List<PlayerGameData.CardType> CardsInHand = new List<PlayerGameData.CardType>();
-    /*List<PlayerGameData.CardType> CardsInHandTest = new List<PlayerGameData.CardType>();*/
+
     UnoCardTextures Textures;
 
     [SerializeField]
@@ -32,9 +39,20 @@ public class UnoPlayer : MonoBehaviour
 
     LayerMask currentLayer;
 
+    [SerializeField]
+    GameObject BlurCurrentPlayer;
+    [SerializeField]
+    Text TimerPlayer;
+    [SerializeField]
+    Text NumberCardPlayer;
+
+    Button UnoButton;
+    Button CounterUnoButton;
+
     PlayerGameData.CardType currentCard = new PlayerGameData.CardType();
     int indexCurrentCard = -1;
     Transform cardSelected;
+    bool IsUNO;
 
 
     // Start is called before the first frame update
@@ -61,7 +79,28 @@ public class UnoPlayer : MonoBehaviour
 
         Transform canvasPlayer = transform.GetChild(2);
         canvasPlayer.GetComponent<Canvas>().worldCamera = Camera.main;
-        canvasPlayer.GetChild(0).GetChild(0).GetComponent<Text>().text = name;
+        canvasPlayer.GetChild(1).GetChild(0).GetComponent<Text>().text = name;
+
+        UnoButton = transform.parent.Find("Canvas").GetChild(0).GetComponent<Button>();
+        CounterUnoButton = transform.parent.Find("Canvas").GetChild(1).GetComponent<Button>();
+        UnoButton.gameObject.SetActive(false);
+        CounterUnoButton.gameObject.SetActive(false);
+
+        UnoButton.onClick.AddListener(() => {
+            UnoButton.gameObject.SetActive(false);
+            NetWorkingCSharp.HeaderGameData gameData = new NetWorkingCSharp.HeaderGameData(NetWorkingCSharp.HeaderGameData.EDataType.UNO, null);
+            NetWorkingCSharp.Header header = new NetWorkingCSharp.Header(gameData, NetWorkingCSharp.EType.PLAYERACTION,
+                                                                            NetWorkingCSharp.ClientTCP.Tcp.clientData);
+        });
+
+        /*CounterUnoButton.onClick.AddListener(() => {
+            CounterUnoButton.gameObject.SetActive(false);
+
+            NetWorkingCSharp.HeaderGameData gameData = new NetWorkingCSharp.HeaderGameData(NetWorkingCSharp.HeaderGameData.EDataType.COUNTERUNO, null);
+            NetWorkingCSharp.Header header = new NetWorkingCSharp.Header(gameData, NetWorkingCSharp.EType.PLAYERACTION, 
+                                                                            NetWorkingCSharp.ClientTCP.Tcp.clientData);
+
+        });*/
     }
 
     public void SpawnCards(PlayerGameData.CardType cardToSpawn, int index, Vector3 pos)
@@ -120,6 +159,7 @@ public class UnoPlayer : MonoBehaviour
             SpawnCards(cardToAdd, nbCardBefore, new Vector3(middleCard * -DistBetweenCards, 0f, nbCardBefore * 0.001f) + direction * nbCardBefore);
         }
 
+        NumberCardPlayer.text = CardsInHand.Count.ToString();
     }
 
     void SortCardForControllerPlayer(PlayerGameData.CardType cardToAdd, int index, float middleCard, Vector3 direction, ref bool cardAdded)
@@ -161,6 +201,8 @@ public class UnoPlayer : MonoBehaviour
         }
         CardsInHand.RemoveAt(index);
         Destroy(transform.GetChild(indexCardsChild).GetChild(index).gameObject);
+
+        NumberCardPlayer.text = CardsInHand.Count.ToString();
     }
 
     /*
@@ -342,7 +384,7 @@ public class UnoPlayer : MonoBehaviour
         Gizmos.DrawSphere(Camera.main.ScreenToWorldPoint(Input.mousePosition), 1);
     }
 
-    public NetWorkingCSharp.HeaderGameData UpdatePlayer(PlayerGameData.CardType onBoardCard, PlayModMgr.EPlayModState playState)
+    public NetWorkingCSharp.HeaderGameData UpdatePlayer(PlayerGameData.CardType onBoardCard, PlayModMgr.EPlayModState playState, float Timer)
     {
         NetWorkingCSharp.HeaderGameData header = new NetWorkingCSharp.HeaderGameData();
         header.dataType = NetWorkingCSharp.HeaderGameData.EDataType.DEFAULT;
@@ -356,7 +398,7 @@ public class UnoPlayer : MonoBehaviour
                     if (indexCurrentCard != -1)
                     {
                         UnoNetworkingGameData.GameData data = CardChoose(onBoardCard);
-                        if(data.type != UnoNetworkingGameData.GameData.TypeData.DEFAULT)
+                        if (data.type != UnoNetworkingGameData.GameData.TypeData.DEFAULT)
                         {
                             header.dataType = NetWorkingCSharp.HeaderGameData.EDataType.CARD;
                             header.GameData = data;
@@ -386,6 +428,8 @@ public class UnoPlayer : MonoBehaviour
 
             }
         }
+
+        TimerPlayer.text = ((int)Timer).ToString();
 
         return header;
     }
@@ -452,6 +496,40 @@ public class UnoPlayer : MonoBehaviour
     public void ToControllerIA()
     {
         controller = EController.IA;
+    }
+
+    public bool ToNextPlayer(bool isVisible, PlayerGameData.CardType cardOnBoard)
+    {
+        BlurCurrentPlayer.SetActive(isVisible);
+        TimerPlayer.transform.parent.gameObject.SetActive(isVisible);
+        if(UnoButton.gameObject.activeSelf)
+            UnoButton.gameObject.SetActive(false);
+
+        if (controller == EController.PLAYER && CanPlayCard(cardOnBoard))
+        {
+            UnoButton.gameObject.SetActive(true);
+            return true;
+        }
+        return false;
+    }
+
+    private bool CanPlayCard(PlayerGameData.CardType cardOnBoard)
+    {
+        foreach(PlayerGameData.CardType card in CardsInHand)
+        {
+            if (PlayerGameData.CanPutCardOnBoard(cardOnBoard, card))
+                return true;
+        }
+        return false;
+    }
+    public void ActivateCounterUNO(bool activate)
+    {
+        CounterUnoButton.gameObject.SetActive(activate);
+    }
+
+    public void SetIsUno(bool isUno)
+    {
+        IsUNO = isUno;
     }
 
     /*public void SetController(EController c)

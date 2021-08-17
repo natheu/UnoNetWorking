@@ -154,10 +154,12 @@ namespace NetWorkingCSharp
                 newClient.Connect(client);
                 Thread loopRead = new Thread(new ParameterizedThreadStart(ReceiveCallback));
                 loopRead.IsBackground = true;
+                //loopRead.
                 loopRead.Start(IdClient);
                 Clients.Add(IdClient, newClient);
                 ClientsGameData.Add(IdClient, new PlayerGameData(new PlayerGameData.GameData(5), newClient.clientData));
                 IdClient++;
+                Debug.Log("End Add New Client");
             }
             mutexClient.ReleaseMutex();
         }
@@ -184,6 +186,7 @@ namespace NetWorkingCSharp
         private static void ReceiveCallback(object keyClient)
         {
             ClientServ currClient = Clients[(int)keyClient];
+            Debug.Log("Key client : " + (int)keyClient);
             while (stateGame != EStateGame.CLOSED && currClient.connected)
             {
                 /*for (int i = 0; i < Clients.Count; i++)
@@ -250,7 +253,6 @@ namespace NetWorkingCSharp
                         DisconnectClient(currClient);
                     }
                 }
-                //}
             }
         }
 

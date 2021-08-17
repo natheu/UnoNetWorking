@@ -11,6 +11,8 @@ namespace NetWorkingCSharp
         {
             DEFAULT = 0,
             CARD,
+            UNO,
+            COUNTERUNO,
             CHOOSECOLOR,
             CHOOSEPLAYER
         }
@@ -59,6 +61,7 @@ namespace NetWorkingCSharp
                 case EDataType.CHOOSEPLAYER:
                     data = Serializer.DeserializeWithLengthPrefix<int>(stream, PrefixStyle.Fixed32);
                     break;
+                
             }
 
             return new HeaderGameData(dataType, data);

@@ -16,10 +16,12 @@ public class PlayModMgr : MonoBehaviour
     private float DistBetweenPlayer = 2f;
     [SerializeField]
     private GameObject PrefabPlayer = null;
+    [SerializeField]
+    private float PlayTimePlayer = 15f;
 
     private int DirectionBoard = -1;
     private int CurrentPlayer = 0;
-    private float TimerCurrPlayer = 0f;
+    private float TimerCurrPlayer = 100f;
 
     UnoCardTextures TexturesCards;
     PlayerGameData.CardType CardOnBoard;
@@ -32,6 +34,7 @@ public class PlayModMgr : MonoBehaviour
     List<UnoPlayer> players = new List<UnoPlayer>();
 
     UnityEvent<PlayerGameData.CardType> CardPlayEvent = new UnityEvent<PlayerGameData.CardType>();
+    UnityEvent<int> UpdateDirBoard = new UnityEvent<int>();
 
     [HideInInspector]
     public DataStruct.Deck deck;
@@ -42,6 +45,10 @@ public class PlayModMgr : MonoBehaviour
     void Start()
     {
         CardPlayEvent.AddListener(card => UpdateOnBoardCard(card));
+        UpdateDirBoard.AddListener(dir =>
+        {
+            transform.GetChild(0).GetComponent<AnimDirBoard>().UpdateDirection(dir);
+        });
     }
 
     private void UpdateOnBoardCard(PlayerGameData.CardType toCard)
@@ -58,19 +65,36 @@ public class PlayModMgr : MonoBehaviour
     {
 
         TimerCurrPlayer -= Time.deltaTime;
-        if (TimerCurrPlayer < 0)
+        if (TimerCurrPlayer <= 0)
         {
             TimerCurrPlayer = 0;
-            /*
-            UpdateCurrentPlayer();
-            if (NetWorkingCSharp.ServerTCP.host)
+            if(NetWorkingCSharp.ServerTCP.host && state == EPlayModState.PLAY)
             {
-                
+                List<PlayerGameData.CardType> list = new List<PlayerGameData.CardType>();
+                for (int i = 0; i < 4; i++)
+                {
+                    list.Add(deck.GetNextCard());
+                }
+                UnoNetworkingGameData.GameData unoGameData = new UnoNetworkingGameData.GameData();
+                unoGameData.PosInHand = 1;
+                unoGameData.CardTypePutOnBoard = list.ToArray();
+                unoGameData.type = UnoNetworkingGameData.GameData.TypeData.DRAWCARDS;
+                NetWorkingCSharp.HeaderGameData gameData = new NetWorkingCSharp.HeaderGameData(
+                                                            NetWorkingCSharp.HeaderGameData.EDataType.CARD, unoGameData);
+
+                NetWorkingCSharp.Header header = new NetWorkingCSharp.Header(gameData, NetWorkingCSharp.EType.PLAYERACTION,
+                                                                                            new NetWorkingCSharp.ServerTCP.ClientData());
+                UpdateActionPlayer(0, header);
+                TimerCurrPlayer = PlayTimePlayer;
+                GameMgr.SendNetWorkingData(header);
             }
-            */
+
+
+            return;
         }
+
         //Debug.Log("trun : " + CurrentPlayer);
-        NetWorkingCSharp.HeaderGameData headerGame = players[CurrentPlayer].UpdatePlayer(CardOnBoard, state);
+        NetWorkingCSharp.HeaderGameData headerGame = players[CurrentPlayer].UpdatePlayer(CardOnBoard, state, TimerCurrPlayer);
 
         if (headerGame.dataType != NetWorkingCSharp.HeaderGameData.EDataType.DEFAULT)
         {
@@ -80,6 +104,7 @@ public class PlayModMgr : MonoBehaviour
                 AnalyseGameData(ref headerGame);
                 NetWorkingCSharp.Header header = new NetWorkingCSharp.Header(headerGame, NetWorkingCSharp.EType.PLAYERACTION,
                                                                                             new NetWorkingCSharp.ServerTCP.ClientData());
+                UpdateActionPlayer(0, header);
                 Debug.Log("Host PLay");
                 GameMgr.SendNetWorkingData(header);
             }
@@ -87,7 +112,7 @@ public class PlayModMgr : MonoBehaviour
             else
             {
                 NetWorkingCSharp.Header header = new NetWorkingCSharp.Header(headerGame, NetWorkingCSharp.EType.PLAYERACTION,
-                                                                                            new NetWorkingCSharp.ServerTCP.ClientData());
+                                                                                            NetWorkingCSharp.ClientTCP.Tcp.clientData);
 
                 GameMgr.SendNetWorkingData(header);
             }
@@ -112,31 +137,36 @@ public class PlayModMgr : MonoBehaviour
 
     public void AnalyseGameData(ref NetWorkingCSharp.HeaderGameData header)
     {
-        if (state == EPlayModState.PLAY)
+        switch (header.dataType)
         {
-            UnoNetworkingGameData.GameData data = (UnoNetworkingGameData.GameData)header.GameData;
-            switch (data.type)
-            {
-                case UnoNetworkingGameData.GameData.TypeData.DEFAULT:
-                    break;
-                case UnoNetworkingGameData.GameData.TypeData.CARDPLAY:
-                    AnalyseEffect(ref data);
-                    break;
-                case UnoNetworkingGameData.GameData.TypeData.DRAWCARDS:
-                    ChooseDrawCard(ref data);
-                    break;
-            }
+            case NetWorkingCSharp.HeaderGameData.EDataType.CARD:
+                if (state == EPlayModState.PLAY)
+                {
+                    UnoNetworkingGameData.GameData data = (UnoNetworkingGameData.GameData)header.GameData;
+                    switch (data.type)
+                    {
+                        case UnoNetworkingGameData.GameData.TypeData.DEFAULT:
+                            break;
+                        case UnoNetworkingGameData.GameData.TypeData.CARDPLAY:
+                            AnalyseEffect(ref data);
+                            break;
+                        case UnoNetworkingGameData.GameData.TypeData.DRAWCARDS:
+                            ChooseDrawCard(ref data);
+                            break;
+                    }
 
-            header.GameData = data;
+                    header.GameData = data;
+                }
+                else if (state == EPlayModState.WAITCOLOR)
+                {
+                    AnalyseANYCards(ref header);
+                }
+                break;
+            /*case NetWorkingCSharp.HeaderGameData.EDataType.UNO:
+                break;
+            case NetWorkingCSharp.HeaderGameData.EDataType.COUNTERUNO:
+                break;*/
         }
-        else if(state == EPlayModState.WAITCOLOR)
-        {
-            AnalyseANYCards(ref header);
-        }
-
-        UpdateActionPlayer(0, header); 
-
-        //return data;
     }
 
     void AnalyseEffect(ref UnoNetworkingGameData.GameData data)
@@ -183,40 +213,57 @@ public class PlayModMgr : MonoBehaviour
         data.CardTypePutOnBoard = new PlayerGameData.CardType[] { deck.GetNextCard() };
     }
 
-    public void UpdateActionPlayer(int IdPLayerAction, NetWorkingCSharp.HeaderGameData header)
+    public void UpdateActionPlayer(int IdPLayerAction, NetWorkingCSharp.Header header)
     {
+        NetWorkingCSharp.HeaderGameData headerGameData = (NetWorkingCSharp.HeaderGameData)header.Data;
         Debug.Log("Update Player");
-        if (state == EPlayModState.PLAY)
+        int indexLastPlayer = CurrentPlayer;
+        switch (headerGameData.dataType)
         {
-            UnoNetworkingGameData.GameData data = (UnoNetworkingGameData.GameData)header.GameData; 
-            switch (data.type)
-            {
-                case UnoNetworkingGameData.GameData.TypeData.DEFAULT:
-                    break;
-                case UnoNetworkingGameData.GameData.TypeData.CARDPLAY:
-                    PlayerGameData.CardType cardType = players[CurrentPlayer].CardPlay(ref data);
-                    CardPlayEvent.Invoke(cardType);
-                    deck.AddNewCard(cardType);
-                    EffectPlayCard(cardType, data);
-                    break;
-                case UnoNetworkingGameData.GameData.TypeData.DRAWCARDS:
-                    players[CurrentPlayer].DrawCards(data);
-                    break;
-            }
+            case NetWorkingCSharp.HeaderGameData.EDataType.CARD:
+                if (state == EPlayModState.PLAY)
+                {
+                    UnoNetworkingGameData.GameData data = (UnoNetworkingGameData.GameData)headerGameData.GameData;
+                    switch (data.type)
+                    {
+                        case UnoNetworkingGameData.GameData.TypeData.DEFAULT:
+                            break;
+                        case UnoNetworkingGameData.GameData.TypeData.CARDPLAY:
+                            PlayerGameData.CardType cardType = players[CurrentPlayer].CardPlay(ref data);
+                            CardPlayEvent.Invoke(cardType);
+                            deck.AddNewCard(cardType);
+                            EffectPlayCard(cardType, data, (System.DateTime.Now.Millisecond - header.HeaderTime) / 1000f);
+                            break;
+                        case UnoNetworkingGameData.GameData.TypeData.DRAWCARDS:
+                            players[CurrentPlayer].DrawCards(data);
+                            if (data.PosInHand == 1)
+                                CurrentPlayer = GetNextPlayer(CurrentPlayer);
+                            TimerCurrPlayer = PlayTimePlayer - (System.DateTime.Now.Millisecond - header.HeaderTime) / 1000f;
+                            break;
+                    }
+                }
+                else if (state == EPlayModState.WAITCOLOR)
+                {
+                    if (headerGameData.dataType == NetWorkingCSharp.HeaderGameData.EDataType.CHOOSECOLOR)
+                        UpdateANYColor((PlayerGameData.CardType.Color)headerGameData.GameData);
+                    else
+                    {
+                        UnoNetworkingGameData.GameData data = (UnoNetworkingGameData.GameData)headerGameData.GameData;
+                        UpdateANYColor((PlayerGameData.CardType.Color)data.PosInHand);
+                        players[GetNextPlayer(CurrentPlayer)].DrawCards(data);
+                    }
+                    players[CurrentPlayer].ToChooseCard();
+                    CurrentPlayer = GetNextPlayer(GetNextPlayer(CurrentPlayer));
+                    TimerCurrPlayer = PlayTimePlayer - (System.DateTime.Now.Millisecond - header.HeaderTime) / 1000f;
+                }
+                players[indexLastPlayer].ToNextPlayer(false, CardOnBoard);
+                players[CurrentPlayer].ToNextPlayer(true, CardOnBoard);
+                break;
+            case NetWorkingCSharp.HeaderGameData.EDataType.UNO:
+                players[CurrentPlayer].SetIsUno(true);
+                break;
         }
-        else if(state == EPlayModState.WAITCOLOR)
-        {   
-            if(header.dataType == NetWorkingCSharp.HeaderGameData.EDataType.CHOOSECOLOR)
-                UpdateANYColor((PlayerGameData.CardType.Color)header.GameData);
-            else
-            {
-                UnoNetworkingGameData.GameData data = (UnoNetworkingGameData.GameData)header.GameData;
-                UpdateANYColor((PlayerGameData.CardType.Color)data.PosInHand);
-                players[GetNextPlayer(CurrentPlayer)].DrawCards(data);
-            }
-            players[CurrentPlayer].ToChooseCard();
-            CurrentPlayer = GetNextPlayer(GetNextPlayer(CurrentPlayer));
-        }
+
     }
 
     private void UpdateANYColor(PlayerGameData.CardType.Color data)
@@ -226,12 +273,13 @@ public class PlayModMgr : MonoBehaviour
         // change the textures to the right texture
     }
 
-    private void EffectPlayCard(PlayerGameData.CardType cardType, UnoNetworkingGameData.GameData gameData)
+    private void EffectPlayCard(PlayerGameData.CardType cardType, UnoNetworkingGameData.GameData gameData, float packetTime)
     {
         // the card is a number no special effect
         if (cardType.Effect < 10)
         {
             CurrentPlayer = GetNextPlayer(CurrentPlayer);
+            TimerCurrPlayer = PlayTimePlayer - packetTime;
             return;
         }
 
@@ -243,6 +291,8 @@ public class PlayModMgr : MonoBehaviour
             players[nextPlayer].DrawCards(gameData);
 
             CurrentPlayer = GetNextPlayer(nextPlayer);
+
+            TimerCurrPlayer = PlayTimePlayer - packetTime;
             return;
         }
         
@@ -250,6 +300,7 @@ public class PlayModMgr : MonoBehaviour
         if(cardType.Effect == 11)
         {
             CurrentPlayer = GetNextPlayer(GetNextPlayer(CurrentPlayer));
+            TimerCurrPlayer = PlayTimePlayer - packetTime;
             // Add anim or something to tell your turn is passed
             return;
         }
@@ -258,7 +309,9 @@ public class PlayModMgr : MonoBehaviour
         if (cardType.Effect == 12)
         {
             DirectionBoard *= -1;
+            UpdateDirBoard.Invoke(DirectionBoard);
             CurrentPlayer = GetNextPlayer(CurrentPlayer);
+            TimerCurrPlayer = PlayTimePlayer - packetTime;
             // animation tu show that the direction of the board changed
             return;
         }
@@ -318,6 +371,8 @@ public class PlayModMgr : MonoBehaviour
         CardOnBoardObject.transform.rotation = Quaternion.Euler(80, 0, 0);
         CardOnBoardObject.name = ((int)CardOnBoard.CardColor).ToString() + "_" + CardOnBoard.Effect.ToString();
         UpdateOnBoardCard(CardOnBoard);
+        players[CurrentPlayer].ToNextPlayer(true, CardOnBoard);
+        TimerCurrPlayer = PlayTimePlayer;
     }
 
     private List<Vector3> CreateAllPos(int numberPlayer)

@@ -28,9 +28,6 @@ namespace NetWorkingCSharp
 
         public static void SendTCPDataToAll(Header headerToSend)
         {
-            //if (headerToSend.TypeData == EType.BEGINPLAY)
-            //    ServerTCP.stateGame = ServerTCP.EStateGame.STARTNEW;
-
             foreach (KeyValuePair<int, ServerTCP.ClientServ> client in ServerTCP.Clients)
             {
                 if (client.Value.connected)
@@ -49,6 +46,7 @@ namespace NetWorkingCSharp
 
         public static void SendTCPDataToAllExept(int clientExeption, Header headerToSend)
         {
+            Debug.Log("Exeption : " + clientExeption);
             foreach(KeyValuePair<int, ServerTCP.ClientServ> client in ServerTCP.Clients)
             {
                 if (clientExeption != client.Value.clientData.Id && client.Value.connected)
@@ -69,12 +67,12 @@ namespace NetWorkingCSharp
             welcome.msg = msg;
             welcome.clientsData = clients;
             Header H = new Header(welcome, EType.WELCOME, toClient);
-            H.TypeData = EType.WELCOME;
+            //H.TypeData = EType.WELCOME;
 
             Header.SendHeader(newClient.GetStream(), H);
 
-            clients.Clear();
-            H.Data = clients;
+            welcome.clientsData.Clear();
+            H.Data = welcome;
             SendTCPDataToAllExept(toClient.Id, H);
         }
 
