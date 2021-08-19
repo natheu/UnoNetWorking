@@ -59,6 +59,7 @@ public class UnoPlayer : MonoBehaviour
     void Start()
     {
         currentLayer = CardMask;
+        IsUNO = false;
     }
 
     public void InitPlayer(string name, PlayerGameData.CardType[] beginCard, UnoCardTextures textures, EController c)
@@ -81,8 +82,8 @@ public class UnoPlayer : MonoBehaviour
         canvasPlayer.GetComponent<Canvas>().worldCamera = Camera.main;
         canvasPlayer.GetChild(1).GetChild(0).GetComponent<Text>().text = name;
 
-        UnoButton = transform.parent.Find("Canvas").GetChild(0).GetComponent<Button>();
-        CounterUnoButton = transform.parent.Find("Canvas").GetChild(1).GetComponent<Button>();
+        UnoButton = GameObject.Find("CanvasUNO").transform.GetChild(0).GetComponent<Button>();
+        CounterUnoButton = GameObject.Find("CanvasUNO").transform.GetChild(1).GetComponent<Button>();
         UnoButton.gameObject.SetActive(false);
         CounterUnoButton.gameObject.SetActive(false);
 
@@ -277,6 +278,16 @@ public class UnoPlayer : MonoBehaviour
             RemoveCard(cardType, data.PosInHand);
             // TO DO Animation Play card
             cards.RemoveAt(0);
+
+            if(CardsInHand.Count == 1 && !IsUNO)
+            {
+                for(int i = 0; i < 2; i++)
+                {
+                    AddCard(cards[0]);
+                    cards.RemoveAt(0);
+                }
+            }
+
             data.CardTypePutOnBoard = cards.ToArray();
             Debug.Log("CardPlay detected");
             return cardType;
@@ -301,40 +312,13 @@ public class UnoPlayer : MonoBehaviour
         {
             RaycastHit outHit;
             if (Physics.Raycast(Camera.main.ScreenPointToRay(Input.mousePosition), out outHit, 1000f, currentLayer))
-            {
-                /*Transform TNameCard = outHit.transform.parent.parent;
-                string[] nameCardSplit = TNameCard.name.Split('_');
-                //Debug.Log("Card Touch : " + outHit.transform.name);
-                if (cardSelected != outHit.transform && cardSelected != null)
-                {
-                    cardSelected.position = new Vector3(cardSelected.position.x, 0f, cardSelected.position.z);
-                    cardSelected = TNameCard;
-                    cardSelected.transform.position = new Vector3(TNameCard.position.x, 0.5f, TNameCard.position.z);
-                }
-                else
-                {
-                    cardSelected = outHit.transform;
-                    cardSelected.transform.position = new Vector3(TNameCard.position.x, 0.5f, TNameCard.position.z);
-                }
-
-                if (nameCardSplit.Length >= 2)
-                {
-                    currentCard.CardColor = (PlayerGameData.CardType.Color)int.Parse(nameCardSplit[0]);
-
-                    currentCard.Effect = int.Parse(nameCardSplit[1]);
-
-                    //currentCard = CardsInHand[FindPosCard(TNameCard)];
-
-                    indexCurrentCard = FindPosCard(TNameCard);
-                    //Debug.Log("It's working");
-                }*/
+            { 
                 if (outHit.transform.gameObject.layer == LayerMask.NameToLayer("PlayerCard"))
                     UpdatePosCardSelected(outHit);
                 else if (outHit.transform.gameObject.layer == LayerMask.NameToLayer("ChooseColor"))
                 {
                     currentCard.CardColor = (PlayerGameData.CardType.Color)int.Parse(outHit.transform.name);
                     cardSelected = outHit.transform;
-                    //Debug.Log("ChooseColor");
                 }
             }
             else if(cardSelected != null)
@@ -415,7 +399,7 @@ public class UnoPlayer : MonoBehaviour
                         return header;
                     }
                 }
-                else if (playState == PlayModMgr.EPlayModState.WAITCOLOR)
+                else if (playState == PlayModMgr.EPlayModState.WAITCOLOR && cardSelected != null)
                 {
                     Debug.Log("CHOOSE COLOR");
                     header.dataType = NetWorkingCSharp.HeaderGameData.EDataType.CHOOSECOLOR;
@@ -505,7 +489,7 @@ public class UnoPlayer : MonoBehaviour
         if(UnoButton.gameObject.activeSelf)
             UnoButton.gameObject.SetActive(false);
 
-        if (controller == EController.PLAYER && CanPlayCard(cardOnBoard))
+        if (controller == EController.PLAYER && CanPlayCard(cardOnBoard) && IsPlayerInUNO())
         {
             UnoButton.gameObject.SetActive(true);
             return true;
@@ -532,6 +516,15 @@ public class UnoPlayer : MonoBehaviour
         IsUNO = isUno;
     }
 
+    public bool IsPlayerInUNO()
+    {
+        return (CardsInHand.Count == 2);
+    }
+
+    public bool IsUno()
+    {
+        return IsUNO;
+    }
     /*public void SetController(EController c)
     {
         controller = c;

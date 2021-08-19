@@ -140,6 +140,7 @@ public class PlayModMgr : MonoBehaviour
         switch (header.dataType)
         {
             case NetWorkingCSharp.HeaderGameData.EDataType.CARD:
+            case NetWorkingCSharp.HeaderGameData.EDataType.CHOOSECOLOR:
                 if (state == EPlayModState.PLAY)
                 {
                     UnoNetworkingGameData.GameData data = (UnoNetworkingGameData.GameData)header.GameData;
@@ -148,6 +149,7 @@ public class PlayModMgr : MonoBehaviour
                         case UnoNetworkingGameData.GameData.TypeData.DEFAULT:
                             break;
                         case UnoNetworkingGameData.GameData.TypeData.CARDPLAY:
+                            AnalysePlayerNumberCards(ref data);
                             AnalyseEffect(ref data);
                             break;
                         case UnoNetworkingGameData.GameData.TypeData.DRAWCARDS:
@@ -169,6 +171,22 @@ public class PlayModMgr : MonoBehaviour
         }
     }
 
+    void AnalysePlayerNumberCards(ref UnoNetworkingGameData.GameData data)
+    {
+        if (!players[CurrentPlayer].IsPlayerInUNO())
+            return;
+        else if (players[CurrentPlayer].IsUno())
+            return;
+
+        List <PlayerGameData.CardType> list = new List<PlayerGameData.CardType>(data.CardTypePutOnBoard);
+        for (int i = 0; i < 2; i++)
+        {
+            list.Add(deck.GetNextCard());
+        }
+        Debug.Log("YOU DIDN'T SAY UNO");
+        data.CardTypePutOnBoard = list.ToArray();
+    }
+
     void AnalyseEffect(ref UnoNetworkingGameData.GameData data)
     {
         PlayerGameData.CardType cardType = data.CardTypePutOnBoard[0];
@@ -179,8 +197,9 @@ public class PlayModMgr : MonoBehaviour
         // the card plays is a +2
         if (cardType.Effect == 10)
         {
-            List<PlayerGameData.CardType> list = new List<PlayerGameData.CardType>();
-            list.Add(data.CardTypePutOnBoard[0]);
+            List<PlayerGameData.CardType> list = new List<PlayerGameData.CardType>(data.CardTypePutOnBoard);
+            
+            //list.Add(data.CardTypePutOnBoard[0]);
             for (int i = 0; i < 2; i++)
             {
                 list.Add(deck.GetNextCard());
@@ -221,6 +240,7 @@ public class PlayModMgr : MonoBehaviour
         switch (headerGameData.dataType)
         {
             case NetWorkingCSharp.HeaderGameData.EDataType.CARD:
+            case NetWorkingCSharp.HeaderGameData.EDataType.CHOOSECOLOR:
                 if (state == EPlayModState.PLAY)
                 {
                     UnoNetworkingGameData.GameData data = (UnoNetworkingGameData.GameData)headerGameData.GameData;
@@ -244,17 +264,23 @@ public class PlayModMgr : MonoBehaviour
                 }
                 else if (state == EPlayModState.WAITCOLOR)
                 {
+                    Debug.Log("UpdateColor");
+
                     if (headerGameData.dataType == NetWorkingCSharp.HeaderGameData.EDataType.CHOOSECOLOR)
-                        UpdateANYColor((PlayerGameData.CardType.Color)headerGameData.GameData);
+                        UpdateANYColor((PlayerGameData.CardType.Color)headerGameData.GameData, PlayerGameData.CHOOSE_COLOR);
                     else
                     {
                         UnoNetworkingGameData.GameData data = (UnoNetworkingGameData.GameData)headerGameData.GameData;
-                        UpdateANYColor((PlayerGameData.CardType.Color)data.PosInHand);
+                        UpdateANYColor((PlayerGameData.CardType.Color)data.PosInHand, PlayerGameData.PLUS_FOUR);
                         players[GetNextPlayer(CurrentPlayer)].DrawCards(data);
+                        players[CurrentPlayer].ToChooseCard();
+                        CurrentPlayer = GetNextPlayer(CurrentPlayer);
                     }
-                    players[CurrentPlayer].ToChooseCard();
-                    CurrentPlayer = GetNextPlayer(GetNextPlayer(CurrentPlayer));
+                    CurrentPlayer = GetNextPlayer(CurrentPlayer);
+
                     TimerCurrPlayer = PlayTimePlayer - (System.DateTime.Now.Millisecond - header.HeaderTime) / 1000f;
+
+                    state = EPlayModState.PLAY;
                 }
                 players[indexLastPlayer].ToNextPlayer(false, CardOnBoard);
                 players[CurrentPlayer].ToNextPlayer(true, CardOnBoard);
@@ -266,11 +292,13 @@ public class PlayModMgr : MonoBehaviour
 
     }
 
-    private void UpdateANYColor(PlayerGameData.CardType.Color data)
+    private void UpdateANYColor(PlayerGameData.CardType.Color color, int anyEffect)
     {
-        transform.GetChild(0).name = ((int)data).ToString() + "_" + transform.GetChild(0).name.Split('_')[1];
-
-        // change the textures to the right texture
+        CardOnBoardObject.name = ((int)color).ToString() + "_" + CardOnBoardObject.name.Split('_')[1];
+        CardOnBoard.CardColor = color;
+        // TO DO : change the textures to the right texture
+        int i = (anyEffect - PlayerGameData.PLUS_FOUR) * 4 + (int)color - 1;
+        CardOnBoardObject.transform.GetChild(0).GetChild(0).GetComponent<MeshRenderer>().material.mainTexture = TexturesCards.GetANYColorSprite(i);
     }
 
     private void EffectPlayCard(PlayerGameData.CardType cardType, UnoNetworkingGameData.GameData gameData, float packetTime)

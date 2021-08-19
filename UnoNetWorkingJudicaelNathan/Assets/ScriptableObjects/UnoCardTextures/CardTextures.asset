@@ -73,4 +73,13 @@ MonoBehaviour:
   - mats:
     - {fileID: 2800000, guid: d19e4b825b32493449bf67575daa0780, type: 3}
     - {fileID: 2800000, guid: f49e638e276b3874681a6e7ddedcb3ea, type: 3}
+  ANYColorText:
+  - {fileID: 2800000, guid: 20aabb7bc207e75489b427bdb74e67b4, type: 3}
+  - {fileID: 2800000, guid: f179f4b8d4da5034697379743e45509f, type: 3}
+  - {fileID: 2800000, guid: 25dce5f0b8f1bbd4d8c3943de62b7ee2, type: 3}
+  - {fileID: 2800000, guid: 7aa171571a626a240ade858f3631ffda, type: 3}
+  - {fileID: 2800000, guid: a710fe06c56027a439246010d7a6c0eb, type: 3}
+  - {fileID: 2800000, guid: d4cdc152d6968fe44a2d8194fd3dc99d, type: 3}
+  - {fileID: 2800000, guid: f80cc88e7f18a444b97016931e031d16, type: 3}
+  - {fileID: 2800000, guid: 8d94c7b986981034a99dbbbab20b11ba, type: 3}
   PrefabCards: {fileID: 71273314603560559, guid: cce4da0933c8a40409d3cc4340c4ab0f, type: 3}

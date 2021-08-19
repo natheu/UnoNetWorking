@@ -323,14 +323,15 @@ public class GameMgr : MonoBehaviour
     {
         //UnoNetworkingGameData.GameData gameData = (UnoNetworkingGameData.GameData)header.Data;
         NetWorkingCSharp.HeaderGameData headerData = (NetWorkingCSharp.HeaderGameData)header.Data;
-        if (headerData.dataType == NetWorkingCSharp.HeaderGameData.EDataType.CARD)
+        if (headerData.dataType == NetWorkingCSharp.HeaderGameData.EDataType.CARD || 
+            headerData.dataType == NetWorkingCSharp.HeaderGameData.EDataType.CHOOSECOLOR)
         {
             //UnoNetworkingGameData.GameData gameData = (UnoNetworkingGameData.GameData)headerData.GameData;
             //gameData = PlayMod.AnalyseGameData(ref headerData);
             PlayMod.AnalyseGameData(ref headerData);
-
             //headerData.GameData = gameData;
             header.Data = headerData;
+            PlayMod.UpdateActionPlayer(header.clientData.Id, header);
 
         }
         NetWorkingCSharp.ServerSend.SendTCPDataToAll(header);
