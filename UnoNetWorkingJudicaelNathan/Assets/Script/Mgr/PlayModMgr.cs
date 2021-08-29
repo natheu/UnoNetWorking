@@ -40,6 +40,7 @@ public class PlayModMgr : MonoBehaviour
     public DataStruct.Deck deck;
 
     EPlayModState state;
+    bool FirstCard = false;
 
     // Start is called before the first frame update
     void Start()
@@ -150,7 +151,7 @@ public class PlayModMgr : MonoBehaviour
                             break;
                         case UnoNetworkingGameData.GameData.TypeData.CARDPLAY:
                             AnalysePlayerNumberCards(ref data);
-                            AnalyseEffect(ref data);
+                            AnalyseEffect(ref deck, ref data);
                             break;
                         case UnoNetworkingGameData.GameData.TypeData.DRAWCARDS:
                             ChooseDrawCard(ref data);
@@ -187,7 +188,7 @@ public class PlayModMgr : MonoBehaviour
         data.CardTypePutOnBoard = list.ToArray();
     }
 
-    void AnalyseEffect(ref UnoNetworkingGameData.GameData data)
+    static public void AnalyseEffect(ref DataStruct.Deck deck, ref UnoNetworkingGameData.GameData data)
     {
         PlayerGameData.CardType cardType = data.CardTypePutOnBoard[0];
         // the card is a number no special effect
@@ -392,15 +393,52 @@ public class PlayModMgr : MonoBehaviour
 
         }
 
-        CardOnBoard = playerHandData[playerHandData.Length - 1].CardTypePutOnBoard[0];
+        InitOnBoardCard(playerHandData[playerHandData.Length - 1]);
+    }
+
+    private void InitOnBoardCard(UnoNetworkingGameData.GameData gameData)
+    {
+        CardOnBoard = gameData.CardTypePutOnBoard[0];
 
         CardOnBoardObject = Instantiate(PrefabCard, this.transform);
 
         CardOnBoardObject.transform.rotation = Quaternion.Euler(80, 0, 0);
-        CardOnBoardObject.name = ((int)CardOnBoard.CardColor).ToString() + "_" + CardOnBoard.Effect.ToString();
+        //CardOnBoardObject.name = ((int)CardOnBoard.CardColor).ToString() + "_" + CardOnBoard.Effect.ToString();
         UpdateOnBoardCard(CardOnBoard);
+        EffectFirstCard(CardOnBoard, gameData);
         players[CurrentPlayer].ToNextPlayer(true, CardOnBoard);
         TimerCurrPlayer = PlayTimePlayer;
+    }
+    private void EffectFirstCard(PlayerGameData.CardType cardType, UnoNetworkingGameData.GameData gameData)
+    {
+        // the card plays is a +2
+        if (cardType.Effect == 10)
+        {
+            List<PlayerGameData.CardType> cards = new List<PlayerGameData.CardType>(gameData.CardTypePutOnBoard);
+            cards.RemoveAt(0);
+            gameData.CardTypePutOnBoard = cards.ToArray();
+            players[CurrentPlayer].DrawCards(gameData);
+
+            CurrentPlayer = GetNextPlayer(CurrentPlayer);
+        }
+
+        // the card plays is Turn Pass
+        if (cardType.Effect == 11)
+        {
+            CurrentPlayer = GetNextPlayer(CurrentPlayer);
+            // Add anim or something to tell your turn is passed
+            return;
+        }
+
+        // the card plays is Invert Direction 
+        if (cardType.Effect == 12)
+        {
+            DirectionBoard *= -1;
+            UpdateDirBoard.Invoke(DirectionBoard);
+            CurrentPlayer = GetNextPlayer(CurrentPlayer);
+            // animation tu show that the direction of the board changed
+            return;
+        }
     }
 
     private List<Vector3> CreateAllPos(int numberPlayer)

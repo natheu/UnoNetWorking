@@ -232,7 +232,10 @@ public class GameMgr : MonoBehaviour
             dataplayers[i].CardTypePutOnBoard = ChooseCardPlayer(nbCardBeginning);
         }
         // choose the beginning card on board
-        dataplayers[pos.Length].CardTypePutOnBoard = ChooseCardPlayer(1); 
+        dataplayers[pos.Length].CardTypePutOnBoard = ChooseCardPlayer(1);
+        // analyse the effect to add the cards in  case of a +2 for the beginning card on the board
+
+        PlayModMgr.AnalyseEffect(ref deckGame, ref dataplayers[pos.Length]);
 
         return dataplayers;
     }

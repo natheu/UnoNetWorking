@@ -92,6 +92,10 @@ public class UnoPlayer : MonoBehaviour
             NetWorkingCSharp.HeaderGameData gameData = new NetWorkingCSharp.HeaderGameData(NetWorkingCSharp.HeaderGameData.EDataType.UNO, null);
             NetWorkingCSharp.Header header = new NetWorkingCSharp.Header(gameData, NetWorkingCSharp.EType.PLAYERACTION,
                                                                             NetWorkingCSharp.ClientTCP.Tcp.clientData);
+            if (NetWorkingCSharp.ServerTCP.host)
+                GameObject.Find("PlayMgr(Clone)").GetComponent<PlayModMgr>().UpdateActionPlayer(0, header);
+
+            GameMgr.SendNetWorkingData(header);
         });
 
         /*CounterUnoButton.onClick.AddListener(() => {
@@ -303,6 +307,8 @@ public class UnoPlayer : MonoBehaviour
             AddCard(cardType);
             // TO DO Animation Draw Cards
         }
+        if (IsUNO)
+            IsUNO = false;
     }
 
     // Update is called once per frame

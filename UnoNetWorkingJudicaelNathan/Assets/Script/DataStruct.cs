@@ -70,7 +70,20 @@ public class DataStruct
                 numberShuffle--;
             }
 
+            CheckFirstCardOnBoard();
             EndShuffle = true;
+        }
+
+        public void CheckFirstCardOnBoard()
+        {
+            if (Cards[0].CardColor != PlayerGameData.CardType.Color.ANY)
+                return;
+
+            for(int i = 1; i < Cards.Count; i++)
+            {
+                if(Cards[i].CardColor != PlayerGameData.CardType.Color.ANY)
+                    Swap(Cards, 0, i);
+            }
         }
 
         public PlayerGameData.CardType GetNextCard()
